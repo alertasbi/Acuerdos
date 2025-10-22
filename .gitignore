@@ -1,0 +1,20 @@
+# Node / Nuxt
+node_modules
+.nuxt
+.output
+.dist
+.cache
+
+# Env
+.env
+.env.*.local
+
+# Python / Flask
+venv/
+__pycache__/
+*.pyc
+
+# OS/Editor
+.DS_Store
+.vscode/
+.idea/
