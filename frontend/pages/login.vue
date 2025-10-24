@@ -1,8 +1,9 @@
 <template>
-    <section
-    class="min-h-screen flex flex-col justify-between items-center bg-gradient-to-b from-gray-50 to-gray-100 transition-opacity duration-500 opacity-0"
-    v-show="mounted"
-    >
+  <section
+    class="min-h-screen flex flex-col justify-between items-center bg-gradient-to-b from-gray-50 to-gray-100 transition-opacity duration-500"
+    :class="{ 'opacity-100': mounted, 'opacity-0': !mounted }"
+  >
+
     <!-- Header con logo -->
     <header class="mt-24 sm:mt-32 text-center space-y-6">
       <img
