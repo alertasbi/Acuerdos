@@ -1,15 +1,5 @@
 <template>
-  <aside
-    class="bg-white shadow-lg w-64 h-screen fixed top-0 left-0 flex flex-col border-r border-gray-200 z-40"
-  >
-    <!-- Logo -->
-    <div class="flex items-center justify-center py-6 border-b">
-      <img
-        src="~/assets/images/Logonew_smart2.png"
-        alt="PriceTravel"
-        class="w-44"
-      />
-    </div>
+<aside class="bg-white shadow-lg w-64 h-screen fixed top-[70px] left-0 flex flex-col border-r border-gray-200 z-40">
 
     <!-- Navegación -->
     <nav class="flex-1 overflow-y-auto p-4 text-gray-700">
@@ -42,20 +32,13 @@
 </template>
 
 <script setup lang="ts">
-// Ahora guardamos un conjunto de secciones abiertas
 const openSections = ref<Set<number>>(new Set())
 
 const toggleSection = (index: number) => {
-  if (openSections.value.has(index)) {
-    openSections.value.delete(index)
-  } else {
-    openSections.value.add(index)
-  }
+  if (openSections.value.has(index)) openSections.value.delete(index)
+  else openSections.value.add(index)
 }
-
-const isOpen = (index: number) => {
-  return openSections.value.has(index)
-}
+const isOpen = (index: number) => openSections.value.has(index)
 
 const menu = [
   { title: 'Control de Publicidad', sub: ['Consultar', 'Crear', 'Crear desde PDF'] },
