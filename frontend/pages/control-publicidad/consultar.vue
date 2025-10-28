@@ -125,7 +125,8 @@
             <tr
               v-for="(item, i) in acuerdos"
               :key="i"
-              class="border-b hover:bg-gray-50"
+              class="border-b hover:bg-blue-50 cursor-pointer transition"
+              @click="abrirDetalle(item)"
             >
               <td class="px-6 py-4">{{ item.proveedor }}</td>
               <td class="px-6 py-4">{{ item.tipo }}</td>
@@ -134,23 +135,40 @@
               <td class="px-6 py-4">{{ item.fecha }}</td>
               <td class="px-6 py-4">{{ item.moneda }}</td>
               <td class="px-6 py-4">{{ item.monto }}</td>
-              <td class="px-6 py-4 text-center space-x-2">
-                <a href="#" class="text-blue-500 hover:underline text-sm" @click.stop="abrirHoteles(item)">Ver Hoteles</a>
-                <a href="#" class="text-blue-500 hover:underline text-sm">Ver Archivo</a>
-                <button
-                  class="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                >
-                  Editar
-                </button>
-                <button
-                  class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-                  @click="abrirConfirmacion(item)"
-                >
-                  Eliminar
-                </button>
+
+              <td class="px-6 py-4">
+                <div class="flex flex-wrap justify-center gap-2">
+                  <a
+                    href="#"
+                    class="text-blue-500 hover:underline text-sm whitespace-nowrap"
+                    @click.stop="abrirHoteles(item)"
+                  >
+                    Ver Hoteles
+                  </a>
+                  <a
+                    href="#"
+                    class="text-blue-500 hover:underline text-sm whitespace-nowrap"
+                    @click.stop
+                  >
+                    Ver Archivo
+                  </a>
+                  <button
+                    class="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 whitespace-nowrap"
+                    @click.stop
+                  >
+                    Editar
+                  </button>
+                  <button
+                    class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 whitespace-nowrap"
+                    @click.stop="abrirConfirmacion(item)"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
+
         </table>
       </div>
     </main>
@@ -159,7 +177,7 @@
 
     <!-- 🟣 Modal detalle -->
     <div
-      v-if="detalleSeleccionado && vista === 'tarjetas'"
+      v-if="detalleSeleccionado"
       class="fixed inset-0 flex items-center justify-center bg-black/60 z-50"
     >
       <div
