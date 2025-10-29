@@ -38,32 +38,32 @@
       <!-- ✅ Vista TARJETAS -->
     <div
     v-if="vista === 'tarjetas'"
-    class="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+    class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     >
     <div
         v-for="(item, i) in acuerdos"
         :key="i"
-        class="bg-white shadow-lg rounded-2xl p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 group cursor-pointer"
+        class="bg-white shadow-md rounded-xl p-4 border border-gray-100 hover:shadow-lg transition-all duration-300 group cursor-pointer h-full"
         @click="abrirDetalle(item)"
     >
         <!-- Contenido de la tarjeta -->
         <div class="select-none">
-        <p class="font-bold text-gray-700 mb-1">Proveedor</p>
+        <p class="font-bold text-gray-700 mt-1 mb-0.5">Proveedor</p>
         <p class="text-gray-600">{{ item.proveedor }}</p>
 
-        <p class="font-bold text-gray-700 mt-3 mb-1">Tipo Acuerdo</p>
+        <p class="font-bold text-gray-700 mt-1 mb-0.5">Tipo Acuerdo</p>
         <p class="text-gray-600">{{ item.tipo }}</p>
 
-        <p class="font-bold text-gray-700 mt-3 mb-1">Fecha Acuerdo</p>
+        <p class="font-bold text-gray-700 mt-1 mb-0.5">Fecha Acuerdo</p>
         <p class="text-gray-600">{{ item.fecha }}</p>
 
-        <p class="font-bold text-gray-700 mt-3 mb-1">Gerente</p>
+        <p class="font-bold text-gray-700 mt-1 mb-0.5">Gerente</p>
         <p class="text-gray-600">{{ item.gerente }}</p>
 
-        <p class="font-bold text-gray-700 mt-3 mb-1">Equipo</p>
+        <p class="font-bold text-gray-700 mt-1 mb-0.5">Equipo</p>
         <p class="text-gray-600">{{ item.equipo }}</p>
 
-        <p class="font-bold text-gray-700 mt-3 mb-1">Moneda & Monto</p>
+        <p class="font-bold text-gray-700 mt-1 mb-0.5">Moneda & Monto</p>
         <p class="text-gray-600">{{ item.moneda }} {{ item.monto }}</p>
 
         <div class="mt-4 flex flex-col gap-2">
@@ -85,7 +85,7 @@
         </div>
 
         <!-- Botones inferiores -->
-        <div class="flex justify-end gap-3 mt-6">
+        <div class="flex justify-end gap-2 mt-3">
         <button
             class="px-4 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition text-sm"
             @click.stop
@@ -391,7 +391,95 @@ const acuerdos = ref([
     moneda: 'USD',
     monto: '7,500.00',
   },
+  {
+    Registro: '1720',
+    Equipo: 'Marketing Caribe',
+    Año: '2025',
+    Mes: 'Agosto',
+    TipoAcuerdo: 'Cooperativo Anual',
+    Gerente: 'María González',
+    Proveedor: 'Hotel Xcaret México',
+    ID: '200412',
+    Moneda: 'USD',
+    PrecioSinIVA: '$12,000.00',
+    FolioAcuerdo: '17895',
+    MesesContratados: 12,
+    FechaInicio: '01/01/2025',
+    FechaFin: '31/12/2025',
+    FechaVenta: '15/08/2025',
+    RFC: 'HXM0912278F5',
+    FormaPago: 'Transferencia',
+    Comentarios: 'Cooperativo anual con pauta digital incluida',
+    Firmado: 'Sí',
+    ControlAcuerdos: 'xcaret2025.pdf',
+    proveedor: 'Hotel Xcaret México',
+    tipo: 'Cooperativo Anual',
+    fecha: '2025-08-15',
+    gerente: 'María González',
+    equipo: 'Marketing Caribe',
+    moneda: 'USD',
+    monto: '12,000.00',
+  },
+  {
+    Registro: '1755',
+    Equipo: 'RCP Caribe',
+    Año: '2025',
+    Mes: 'Septiembre',
+    TipoAcuerdo: 'Paquete Variable',
+    Gerente: 'Carlos Torres',
+    Proveedor: 'Grand Palladium Riviera Maya',
+    ID: '200512',
+    Moneda: 'MXN',
+    PrecioSinIVA: '$250,000.00',
+    FolioAcuerdo: '18101',
+    MesesContratados: 2,
+    FechaInicio: '01/09/2025',
+    FechaFin: '31/10/2025',
+    FechaVenta: '20/09/2025',
+    RFC: 'GPRM031219AB3',
+    FormaPago: 'Descuento',
+    Comentarios: 'Campaña regional Caribe con 2 meses de exposición',
+    Firmado: 'Pendiente',
+    ControlAcuerdos: 'palladium-campania.pdf',
+    proveedor: 'Grand Palladium Riviera Maya',
+    tipo: 'Paquete Variable',
+    fecha: '2025-09-20',
+    gerente: 'Carlos Torres',
+    equipo: 'RCP Caribe',
+    moneda: 'MXN',
+    monto: '250,000.00',
+  },
+  {
+    Registro: '1790',
+    Equipo: 'Digital LATAM',
+    Año: '2025',
+    Mes: 'Julio',
+    TipoAcuerdo: 'Publicidad Digital',
+    Gerente: 'Ana López',
+    Proveedor: 'Barceló Maya Beach',
+    ID: '200621',
+    Moneda: 'USD',
+    PrecioSinIVA: '$5,000.00',
+    FolioAcuerdo: '18290',
+    MesesContratados: 1,
+    FechaInicio: '01/07/2025',
+    FechaFin: '31/07/2025',
+    FechaVenta: '30/07/2025',
+    RFC: 'BMB070102KD9',
+    FormaPago: 'Pago Directo',
+    Comentarios: 'Campaña display en portales LATAM',
+    Firmado: 'Sí',
+    ControlAcuerdos: 'barcelo-display.pdf',
+    proveedor: 'Barceló Maya Beach',
+    tipo: 'Publicidad Digital',
+    fecha: '2025-07-30',
+    gerente: 'Ana López',
+    equipo: 'Digital LATAM',
+    moneda: 'USD',
+    monto: '5,000.00',
+  },
 ])
+
 </script>
 
 <style scoped>
