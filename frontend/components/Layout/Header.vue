@@ -40,7 +40,7 @@
 
     <!-- Botón cerrar sesión -->
     <button
-      @click="logout"
+      @click="onLogout"
       class="bg-gradient-to-r from-yellow-400 via-pink-600 via-purple-700 to-sky-500
              text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:opacity-90 transition"
     >
@@ -52,8 +52,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 const router = useRouter()
+const { logout } = useAuth()
 
-const logout = () => {
+const onLogout = () => {
+  logout()
   router.push('/login')
 }
 </script>
