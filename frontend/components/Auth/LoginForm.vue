@@ -60,10 +60,12 @@ const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
 const router = useRouter()
+const { login } = useAuth() 
 
 const handleLogin = () => {
   if (username.value === 'admin@pricetravel.com.mx' && password.value === '1234') {
     errorMsg.value = '' // limpia el mensaje
+    login()
     router.push('/home') // ✅ redirige a Home
   } else {
     errorMsg.value = 'Usuario o contraseña incorrectos.' // ⛔ muestra mensaje rojo

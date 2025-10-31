@@ -5,24 +5,24 @@
   >
 
     <!-- Header con logo -->
-    <header class="mt-24 sm:mt-32 text-center space-y-6">
+    <header class="mt-16 sm:mt-24 text-center space-y-4 px-4">
       <img
         src="../assets/images/Logonew_smart2.png"
         alt="PriceTravel"
-        class="w-48 sm:w-64 md:w-72 mx-auto"
+        class="w-40 sm:w-56 md:w-64 mx-auto"
       />
-      <h1 class="text-2xl sm:text-3xl font-semibold text-gray-700 tracking-wide">
+      <h1 class="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-700 tracking-wide leading-tight">
         Acceso Página Acuerdos
       </h1>
     </header>
 
-    <!-- Formulario centrado (más arriba ahora) -->
-    <main class="flex justify-center items-center w-full px-4 -mt-10 sm:-mt-16">
+    <!-- Formulario centrado -->
+    <main class="flex justify-center items-center w-full px-4 py-6 sm:py-8 md:py-10">
       <LoginForm />
     </main>
 
-    <!-- Footer con barra de colores -->
-    <footer class="relative w-full mt-10">
+    <!-- Footer -->
+    <footer class="w-full mt-auto">
       <div class="relative">
         <img
           src="../assets/images/lineaPriceTravelNew.jpg"
@@ -45,5 +45,4 @@ const mounted = ref(false)
 onMounted(() => {
   mounted.value = true
 })
-
 </script>
