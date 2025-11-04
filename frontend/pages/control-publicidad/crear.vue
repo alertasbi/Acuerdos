@@ -60,7 +60,7 @@
             </label>
             <input
             type="file"
-            accept=".pdf,.doc,.docx"
+            accept=".pdf,.png"
             @change="handleFileUpload"
             class="w-full border border-gray-300 rounded-lg px-4 py-2 cursor-pointer hover:border-blue-400 transition"
             />
@@ -86,6 +86,16 @@
             Siguiente
             </button>
         </div>
+        <!-- Notificación -->
+        <transition name="fade">
+          <div
+            v-if="alertaPaso1"
+            class="fixed bottom-20 right-6 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg text-sm"
+          >
+            {{ alertaPaso1 }}
+          </div>
+        </transition>
+
         </div>
 
         <!-- Paso 2 -->
@@ -1074,13 +1084,39 @@ const form = reactive({
 })
 
 
+const alertaPaso1 = ref('')
+
 const handleFileUpload = (e: Event) => {
   const target = e.target as HTMLInputElement
-  if (target.files && target.files.length > 0) {
-    fileName.value = target.files[0].name
-  } else {
+  if (!target.files || target.files.length === 0) {
     fileName.value = null
+    return
   }
+
+  const file = target.files[0]
+  const allowedTypes = ['application/pdf', 'image/png']
+  const maxSize = 10 * 1024 * 1024 // 10 MB
+
+  // Validar tipo de archivo
+  if (!allowedTypes.includes(file.type)) {
+    alertaPaso1.value = '⚠️ Solo se permiten archivos PDF o PNG.'
+    fileName.value = null
+    target.value = '' // limpiar input
+    setTimeout(() => (alertaPaso1.value = ''), 3000)
+    return
+  }
+
+  // Validar tamaño
+  if (file.size > maxSize) {
+    alertaPaso1.value = '⚠️ El archivo no debe superar los 10 MB.'
+    fileName.value = null
+    target.value = '' // limpiar input
+    setTimeout(() => (alertaPaso1.value = ''), 3000)
+    return
+  }
+
+  // Si pasa las validaciones
+  fileName.value = file.name
 }
 
 const nextStep = () => {
