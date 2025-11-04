@@ -28,29 +28,31 @@
 
         <!-- Botones de selección -->
         <div class="flex flex-col sm:flex-row gap-4 mb-8">
-            <button
-            @click="selectedOption = 'pdf'"
+          <button
+            @click="() => { selectedOption = 'pdf'; form.tipoSeleccion = 'pdf' }"
             :class="[
-                'flex-1 py-3 rounded-lg border-2 font-semibold transition-all text-center',
-                selectedOption === 'pdf'
+              'flex-1 py-3 rounded-lg border-2 font-semibold transition-all text-center',
+              selectedOption === 'pdf'
                 ? 'border-blue-500 text-blue-600 bg-blue-50 shadow-sm'
                 : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
             ]"
-            >
+          >
             📄 Generar PDF
-            </button>
+          </button>
 
-            <button
-            @click="selectedOption = 'upload'"
+          <button
+            @click="() => { selectedOption = 'upload'; form.tipoSeleccion = 'upload' }"
             :class="[
-                'flex-1 py-3 rounded-lg border-2 font-semibold transition-all text-center',
-                selectedOption === 'upload'
+              'flex-1 py-3 rounded-lg border-2 font-semibold transition-all text-center',
+              selectedOption === 'upload'
                 ? 'border-blue-500 text-blue-600 bg-blue-50 shadow-sm'
                 : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
             ]"
-            >
+          >
             ⬆️ Subir Acuerdo
-            </button>
+          </button>
+
+
         </div>
 
         <!-- Si elige subir, aparece input -->
@@ -725,56 +727,173 @@
 
         <!-- Paso 7 -->
         <div v-else-if="step === 7" class="text-center">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">
+          <h2 class="text-lg font-semibold text-gray-700 mb-2">
             Paso 7: Confirmación final
-        </h2>
-        <p class="text-sm text-gray-500 mb-10">Revise los datos antes de finalizar el acuerdo.</p>
+          </h2>
+          <p class="text-sm text-gray-500 mb-10">
+            Revise los datos antes de finalizar el acuerdo.
+          </p>
 
-        <div class="flex flex-col items-center space-y-10">
-            <div class="flex justify-center mt-4 gap-6">
-            <!-- Botón Anterior -->
-            <button
-                type="button"
-                @click="prevStep"
-                class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:border-blue-400 hover:text-blue-600 transition"
-            >
-                Anterior
-            </button>
+          <!-- Si subió un archivo -->
+          <div v-if="selectedOption === 'upload'" class="flex flex-col items-center space-y-6">
+            <h3 class="text-md font-semibold text-gray-700 mb-2">📎 Archivo cargado</h3>
 
-            <!-- Botón Vista Previa PDF -->
-            <button
-                type="button"
-                @click="vistaPreviaPDF"
-                class="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
-            >
-                📄 Vista previa PDF
-            </button>
+            <!-- Vista previa -->
+            <div class="w-full md:w-3/4 lg:w-2/3 bg-gray-100 p-4 rounded-lg shadow-inner">
+              <div v-if="fileName && fileType === 'application/pdf'">
+                <iframe
+                  :src="filePreview"
+                  class="w-full h-[600px] rounded-lg border"
+                  title="Vista previa del PDF"
+                ></iframe>
+              </div>
 
-            <!-- Botón Terminar -->
-            <button
-                type="button"
-                @click="finalizarAcuerdo"
-                class="bg-gradient-to-r from-yellow-400 via-pink-600 to-sky-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:scale-[1.03] transition-transform"
-            >
-                Terminar
-            </button>
+              <div v-else-if="fileName && fileType === 'image/png'">
+                <img
+                  :src="filePreview"
+                  alt="Vista previa del acuerdo"
+                  class="mx-auto max-h-[600px] rounded-lg shadow-md"
+                />
+              </div>
+
+              <p v-else class="text-gray-500 italic">No hay archivo para mostrar.</p>
             </div>
-        </div>
 
-        <!-- Notificación -->
-        <transition name="fade">
+            <!-- Botón de detalles -->
+            <button
+              type="button"
+              @click="mostrarModal = true"
+              class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
+            >
+              Ver detalles del acuerdo
+            </button>
+          </div>
+
+          <!-- Si eligió generar PDF (lo trabajaremos después) -->
+          <div v-else class="text-gray-600 italic mt-10">
+            📝 Generando vista previa del PDF... (pendiente de implementación)
+          </div>
+
+          <!-- Botón terminar -->
+          <div class="flex justify-center mt-10 gap-6">
+            <button
+              type="button"
+              @click="prevStep"
+              class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:border-blue-400 hover:text-blue-600 transition"
+            >
+              Anterior
+            </button>
+
+            <button
+              type="button"
+              @click="finalizarAcuerdo"
+              class="bg-gradient-to-r from-yellow-400 via-pink-600 to-sky-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:scale-[1.03] transition-transform"
+            >
+              Terminar
+            </button>
+          </div>
+
+          <!-- Modal detalles -->
+          <transition name="fade">
             <div
-            v-if="mensajeExito"
-            class="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg text-sm z-50"
+              v-if="mostrarModal"
+              class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
             >
-            {{ mensajeExito }}
+            <div class="bg-white rounded-xl shadow-lg w-11/12 md:w-2/3 lg:w-2/3 p-8 relative max-h-[80vh] overflow-y-auto">
+              <button
+                @click="mostrarModal = false"
+                class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✖
+              </button>
+
+              <h3 class="text-lg font-semibold text-gray-700 mb-6 text-center">
+                Detalles del Acuerdo
+              </h3>
+
+              <!-- Info general -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-2 text-left">
+                <p><strong>Equipo:</strong> {{ form.equipo }}</p>
+                <p><strong>Tipo de acuerdo:</strong> {{ form.tipoAcuerdo }}</p>
+
+                <p><strong>Moneda:</strong> {{ form.moneda }}</p>
+                <p><strong>IVA:</strong> {{ form.iva ? form.iva + '%' : '—' }}</p>
+
+                <p><strong>Precio sin IVA:</strong> {{ formatMoney(form.precioSinIVA, form.moneda) }}</p>
+                <p v-if="form.tipoAcuerdo === 'Fondo Media'"><strong>Porcentaje (FM):</strong> {{ form.porcentaje ? form.porcentaje + '%' : '—' }}</p>
+
+                <p><strong>Fecha inicio:</strong> {{ formatDate(form.fechaInicio) }}</p>
+                <p><strong>Fecha término:</strong> {{ formatDate(form.fechaTermino) }}</p>
+
+                <p><strong>Folio Media:</strong> {{ form.folioMedia || '—' }}</p>
+                <p v-if="form.tipoAcuerdo === 'Fondo Media'"><strong>Tipo (FM):</strong> {{ form.tipo || '—' }}</p>
+
+                <p><strong>Comprobante:</strong> {{ form.comprobante || '—' }}</p>
+                <p><strong>Núm. factura:</strong> {{ form.numeroFactura || '—' }}</p>
+
+                <p><strong>Fecha facturación:</strong> {{ formatDate(form.fechaFacturacion) }}</p>
+                <p><strong>Forma de pago:</strong> {{ form.formaPago || '—' }}</p>
+
+                <p class="md:col-span-2"><strong>Cliente/RFC:</strong> {{ form.clienteRFC }}</p>
+                <p class="md:col-span-2"><strong>Tipo hotel:</strong> {{ form.tipoHotel || '—' }}</p>
+                <p v-if="form.tipoHotel === 'Corporativo'" class="md:col-span-2">
+                  <strong>Corporativo seleccionado:</strong> {{ corporativoSeleccionado || '—' }}
+                </p>
+
+                <div class="md:col-span-2">
+                  <strong>Comentarios:</strong>
+                  <div class="mt-1 whitespace-pre-wrap text-gray-700">
+                    {{ form.comentarios || '—' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hoteles seleccionados -->
+              <div class="mt-6">
+                <h4 class="font-semibold text-gray-700 mb-2">Hoteles seleccionados</h4>
+                <div v-if="hotelesSeleccionados.length">
+                  <ul class="list-disc pl-6 space-y-1">
+                    <li v-for="h in hotelesSeleccionados" :key="h.id">
+                      <span class="font-medium">#{{ h.id }}</span> — {{ h.nombre }}
+                    </li>
+                  </ul>
+                </div>
+                <p v-else class="text-gray-500">No hay hoteles seleccionados.</p>
+              </div>
+
+              <!-- Contactos -->
+              <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-3 border-b pb-1">Contacto Contabilidad</h4>
+                  <p><strong>Nombre:</strong> {{ form.contabilidadNombre || '—' }}</p>
+                  <p><strong>Cargo:</strong> {{ form.contabilidadCargo || '—' }}</p>
+                  <p><strong>E-mail:</strong> {{ form.contabilidadEmail || '—' }}</p>
+                  <p><strong>Teléfono:</strong> {{ form.contabilidadTelefono || '—' }}</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-gray-700 mb-3 border-b pb-1">Contacto Marketing</h4>
+                  <p><strong>Nombre:</strong> {{ form.marketingNombre || '—' }}</p>
+                  <p><strong>Cargo:</strong> {{ form.marketingCargo || '—' }}</p>
+                  <p><strong>E-mail:</strong> {{ form.marketingEmail || '—' }}</p>
+                  <p><strong>Teléfono:</strong> {{ form.marketingTelefono || '—' }}</p>
+                </div>
+              </div>
             </div>
-        </transition>
+
+            </div>
+          </transition>
+
+          <!-- Notificación de éxito -->
+          <transition name="fade">
+            <div
+              v-if="mensajeExito"
+              class="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg text-sm z-50"
+            >
+              {{ mensajeExito }}
+            </div>
+          </transition>
         </div>
-
-
-
-
 
       </div>
     </main>
@@ -784,19 +903,134 @@
 </template>
 
 <script setup lang="ts">
+/* =====================================================
+   📦 IMPORTS Y CONFIGURACIÓN INICIAL
+===================================================== */
 import Header from '~/components/Layout/Header.vue'
 import Footer from '~/components/Layout/FooterBar.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+
+/* =====================================================
+   🧩 VARIABLES GLOBALES / ESTADO PRINCIPAL
+===================================================== */
+const step = ref(1)
+const selectedOption = ref<string | null>(null)
+const fileName = ref<string | null>(null)
+const fileType = ref('')
+const filePreview = ref('')
 const mensajeExito = ref('')
+const mostrarModal = ref(false)
 
 
+/* =====================================================
+   📝 FORMULARIO REACTIVO PRINCIPAL
+===================================================== */
+const form = reactive({
+  tipoSeleccion: '',
+  // Paso 2
+  equipo: '',
+  tipoAcuerdo: '',
+  folioMedia: '',
+  moneda: '',
+  precioSinIVA: '',
+  iva: '',
+  porcentaje: '',
+  tipo: '',
+  // Paso 3
+  fechaInicio: '',
+  fechaTermino: '',
+  // Paso 4
+  comprobante: '',
+  numeroFactura: '',
+  fechaFacturacion: '',
+  formaPago: '',
+  comentarios: '',
+  // Paso 5
+  clienteRFC: '',
+  contabilidadNombre: '',
+  contabilidadCargo: '',
+  contabilidadEmail: '',
+  contabilidadTelefono: '',
+  marketingNombre: '',
+  marketingCargo: '',
+  marketingEmail: '',
+  marketingTelefono: '',
+  // Paso 6
+  tipoHotel: '',
+})
+
+
+/* =====================================================
+   ⚙️ UTILIDADES GLOBALES (formateo, helpers)
+===================================================== */
+const formatDate = (iso?: string) => {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return iso
+  return d.toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' })
+}
+
+const formatMoney = (val: any, currency = 'MXN') => {
+  const num = Number(val)
+  if (isNaN(num)) return val || '—'
+  try {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency
+    }).format(num)
+  } catch {
+    return num.toLocaleString('es-MX')
+  }
+}
+
+
+/* =====================================================
+   🧾 PASO 1 – Subir acuerdo o generar PDF
+===================================================== */
+const alertaPaso1 = ref('')
+
+const handleFileUpload = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (!target.files || target.files.length === 0) {
+    fileName.value = null
+    fileType.value = ''
+    filePreview.value = ''
+    return
+  }
+
+  const file = target.files[0]
+  const allowedTypes = ['application/pdf', 'image/png']
+  const maxSize = 10 * 1024 * 1024 // 10 MB
+
+  if (!allowedTypes.includes(file.type)) {
+    alertaPaso1.value = '⚠️ Solo se permiten archivos PDF o PNG.'
+    target.value = ''
+    setTimeout(() => (alertaPaso1.value = ''), 3000)
+    return
+  }
+
+  if (file.size > maxSize) {
+    alertaPaso1.value = '⚠️ El archivo no debe superar los 10 MB.'
+    target.value = ''
+    setTimeout(() => (alertaPaso1.value = ''), 3000)
+    return
+  }
+
+  fileName.value = file.name
+  fileType.value = file.type
+  filePreview.value = URL.createObjectURL(file)
+}
+
+
+/* =====================================================
+   🧮 PASO 2 – Detalles del acuerdo
+===================================================== */
 const alertaPaso2 = ref('')
 
 const handleTipoAcuerdo = () => {
-  // Limpia porcentaje y tipo si cambia a Paquete Fijo
   if (form.tipoAcuerdo !== 'Fondo Media') {
     form.porcentaje = ''
     form.tipo = ''
@@ -804,7 +1038,6 @@ const handleTipoAcuerdo = () => {
 }
 
 const validarPaso2 = () => {
-  // Verifica campos obligatorios
   if (
     !form.equipo ||
     !form.tipoAcuerdo ||
@@ -818,29 +1051,30 @@ const validarPaso2 = () => {
     return
   }
 
-  // Si es Fondo Media, validar también porcentaje y tipo
   if (form.tipoAcuerdo === 'Fondo Media' && (!form.porcentaje || !form.tipo)) {
     alertaPaso2.value = '⚠️ Por favor selecciona porcentaje y tipo para Fondo Media.'
     setTimeout(() => (alertaPaso2.value = ''), 3000)
     return
   }
 
-  // Si pasa validación, sigue al siguiente paso
   nextStep()
 }
 
+
+/* =====================================================
+   📅 PASO 3 – Periodo del acuerdo
+===================================================== */
 const alertaPaso3 = ref('')
 
 const validarPaso3 = () => {
   if (!form.fechaInicio || !form.fechaTermino) {
-    alertaPaso3.value = '⚠️ Por favor llena ambos campos de fecha antes de continuar.'
+    alertaPaso3.value = '⚠️ Por favor llena ambos campos de fecha.'
     setTimeout(() => (alertaPaso3.value = ''), 3000)
     return
   }
 
-  // Validar que la fecha final sea posterior o igual a la inicial
   if (new Date(form.fechaTermino) < new Date(form.fechaInicio)) {
-    alertaPaso3.value = '⚠️ La fecha de término no puede ser anterior a la fecha de inicio.'
+    alertaPaso3.value = '⚠️ La fecha de término no puede ser anterior a la de inicio.'
     setTimeout(() => (alertaPaso3.value = ''), 3000)
     return
   }
@@ -848,16 +1082,15 @@ const validarPaso3 = () => {
   nextStep()
 }
 
+
+/* =====================================================
+   💰 PASO 4 – Datos de facturación
+===================================================== */
 const alertaPaso4 = ref('')
 
 const validarPaso4 = () => {
-  if (
-    !form.comprobante ||
-    !form.numeroFactura ||
-    !form.fechaFacturacion ||
-    !form.formaPago
-  ) {
-    alertaPaso4.value = '⚠️ Por favor llena todos los campos obligatorios antes de continuar.'
+  if (!form.comprobante || !form.numeroFactura || !form.fechaFacturacion || !form.formaPago) {
+    alertaPaso4.value = '⚠️ Completa todos los campos obligatorios.'
     setTimeout(() => (alertaPaso4.value = ''), 3000)
     return
   }
@@ -865,19 +1098,23 @@ const validarPaso4 = () => {
   nextStep()
 }
 
+
+/* =====================================================
+   👥 PASO 5 – Datos del cliente
+===================================================== */
 const alertaPaso5 = ref('')
 const buscando = ref(false)
 const clienteNoEncontrado = ref(false)
 
 const validarPaso5 = () => {
   if (!form.clienteRFC) {
-    alertaPaso5.value = '⚠️ Por favor ingresa un cliente o RFC antes de continuar.'
+    alertaPaso5.value = '⚠️ Ingresa un cliente o RFC antes de continuar.'
     setTimeout(() => (alertaPaso5.value = ''), 3000)
     return
   }
 
   if (!form.contabilidadNombre || !form.contabilidadEmail || !form.marketingNombre || !form.marketingEmail) {
-    alertaPaso5.value = '⚠️ Por favor completa los campos obligatorios (Nombre y E-mail) en ambos contactos.'
+    alertaPaso5.value = '⚠️ Completa los campos obligatorios (Nombre y E-mail) en ambos contactos.'
     setTimeout(() => (alertaPaso5.value = ''), 3000)
     return
   }
@@ -885,10 +1122,9 @@ const validarPaso5 = () => {
   nextStep()
 }
 
-// 🔍 Simulación de búsqueda ficticia
 const buscarCliente = () => {
   if (!form.clienteRFC) {
-    alertaPaso5.value = '⚠️ Ingresa un RFC para realizar la búsqueda.'
+    alertaPaso5.value = '⚠️ Ingresa un RFC para buscar.'
     setTimeout(() => (alertaPaso5.value = ''), 3000)
     return
   }
@@ -897,71 +1133,44 @@ const buscarCliente = () => {
   clienteNoEncontrado.value = false
 
   setTimeout(() => {
-    // cliente simulado
     if (form.clienteRFC.toLowerCase() === 'pricetravel123') {
       form.contabilidadNombre = 'Laura Gómez'
       form.contabilidadCargo = 'Contadora General'
       form.contabilidadEmail = 'laura.gomez@pricetravel.com'
       form.contabilidadTelefono = '+52 998 222 3344'
-
       form.marketingNombre = 'Carlos Herrera'
       form.marketingCargo = 'Gerente de Marketing'
       form.marketingEmail = 'carlos.herrera@pricetravel.com'
       form.marketingTelefono = '+52 998 111 2233'
     } else {
       clienteNoEncontrado.value = true
-      form.contabilidadNombre = ''
-      form.contabilidadCargo = ''
-      form.contabilidadEmail = ''
-      form.contabilidadTelefono = ''
-      form.marketingNombre = ''
-      form.marketingCargo = ''
-      form.marketingEmail = ''
-      form.marketingTelefono = ''
+      Object.assign(form, {
+        contabilidadNombre: '',
+        contabilidadCargo: '',
+        contabilidadEmail: '',
+        contabilidadTelefono: '',
+        marketingNombre: '',
+        marketingCargo: '',
+        marketingEmail: '',
+        marketingTelefono: ''
+      })
     }
-
     buscando.value = false
   }, 1200)
 }
 
+
+/* =====================================================
+   🏨 PASO 6 – Datos de hoteles
+===================================================== */
 const alertaPaso6 = ref('')
 const seleccionarTodos = ref(false)
 const corporativoSeleccionado = ref('')
 const buscandoHoteles = ref(false)
 const busquedaHotel = ref('')
 
+const corporativosDisponibles = [ "AA-Independent", "Accor", "Akela", "Alsol", "Americas Hotels Group", "Aristos", "Ayenda Hoteles", "B&B Hoteles", "Bahia Principe", "Barcelo", "Be Live", "Belmond", "Best Western", "BH Hoteles", "Blue Doors", "Blue Tree", "BlueBay", "Böëna Wilderness Lodge", "Bourbon", "Caesars Entertainment", "Camino Real", "Carimundi", "Casa Andina", "Catalonia", "CHL Suites", "CHOICE", "Costa del Sol", "Daniel Reyes", "Dann", "Decameron", "Disney", "Dorado Plaza", "DOT Hotels", "El Dorado San Andrés", "EM Hotels", "Emporio", "Enjoy Cuba", "ePhoneix", "Estelar", "Eurostars Hotels", "Fairmont", "Faranda Hotels", "Fasano", "Fontan", "GHL", "Grupo Habita", "Grupo Milenium", "GRUPO POSADAS", "Grupo Welcome", "Hardrock", "Havanatur / Tainotur", "Hilton", "HM Hotels", "Hotel Gallery", "Hoteles Cosmos", "Hoteles Geh Suites", "Hoteles Movich", "Hoteles San Agustin", "Hoteles Solar", "Hoteles Xcaret", "Hotusa Hotels", "Hover Tours", "Hyatt", "Hyatt Inclusive Collection", "Iberostar", "IHG", "Intercity", "Islander Collection", "Karisma", "Krystal", "LAHRES", "Las Brisas", "Latour", "Lomas Hospitality", "Louvre Hotels Group", "Lucerna", "Marival", "Marriott", "MasHoteles", "Mayan Palace", "Melia", "MGM Resorts", "Mision", "MS Hoteles", "NH", "Oasis", "Ocean by H10", "Oetker Collection", "Omni", "On Vacation", "Operadora SI", "Original Resorts", "Ostar", "Oxo Hotel", "Oyo Rooms", "Palace", "Palladium Hotel Group", "Park Royal", "Playa Resorts", "PortoBay", "Presidente Intercontinental", "Prisma Hoteles", "Proturs", "Pueblo Bonito", "RCD HOTELS", "Regency & Santorini", "RIU", "Rosewood Hotels", "Royalton Hotels & Resorts", "Sandals", "Sandos", "Selina", "Sercotel", "Sonesta", "Station Casinos", "The Cayuga Collection", "The Q Project", "Travelers", "Universal", "Velas Resorts", "Viaggio", "Vila Galé", "Villa Group", "Wyndham", "Wynn Las Vegas", "Zar", "Zona Estrategica" ];
 
-const corporativosDisponibles = [
-  "AA-Independent", "Accor", "Akela", "Alsol", "Americas Hotels Group",
-  "Aristos", "Ayenda Hoteles", "B&B Hoteles", "Bahia Principe", "Barcelo",
-  "Be Live", "Belmond", "Best Western", "BH Hoteles", "Blue Doors",
-  "Blue Tree", "BlueBay", "Böëna Wilderness Lodge", "Bourbon", "Caesars Entertainment",
-  "Camino Real", "Carimundi", "Casa Andina", "Catalonia", "CHL Suites",
-  "CHOICE", "Costa del Sol", "Daniel Reyes", "Dann", "Decameron",
-  "Disney", "Dorado Plaza", "DOT Hotels", "El Dorado San Andrés", "EM Hotels",
-  "Emporio", "Enjoy Cuba", "ePhoneix", "Estelar", "Eurostars Hotels",
-  "Fairmont", "Faranda Hotels", "Fasano", "Fontan", "GHL",
-  "Grupo Habita", "Grupo Milenium", "GRUPO POSADAS", "Grupo Welcome", "Hardrock",
-  "Havanatur / Tainotur", "Hilton", "HM Hotels", "Hotel Gallery", "Hoteles Cosmos",
-  "Hoteles Geh Suites", "Hoteles Movich", "Hoteles San Agustin", "Hoteles Solar",
-  "Hoteles Xcaret", "Hotusa Hotels", "Hover Tours", "Hyatt", "Hyatt Inclusive Collection",
-  "Iberostar", "IHG", "Intercity", "Islander Collection", "Karisma",
-  "Krystal", "LAHRES", "Las Brisas", "Latour", "Lomas Hospitality",
-  "Louvre Hotels Group", "Lucerna", "Marival", "Marriott", "MasHoteles",
-  "Mayan Palace", "Melia", "MGM Resorts", "Mision", "MS Hoteles",
-  "NH", "Oasis", "Ocean by H10", "Oetker Collection", "Omni",
-  "On Vacation", "Operadora SI", "Original Resorts", "Ostar", "Oxo Hotel",
-  "Oyo Rooms", "Palace", "Palladium Hotel Group", "Park Royal", "Playa Resorts",
-  "PortoBay", "Presidente Intercontinental", "Prisma Hoteles", "Proturs", "Pueblo Bonito",
-  "RCD HOTELS", "Regency & Santorini", "RIU", "Rosewood Hotels", "Royalton Hotels & Resorts",
-  "Sandals", "Sandos", "Selina", "Sercotel", "Sonesta",
-  "Station Casinos", "The Cayuga Collection", "The Q Project", "Travelers", "Universal",
-  "Velas Resorts", "Viaggio", "Vila Galé", "Villa Group", "Wyndham",
-  "Wynn Las Vegas", "Zar", "Zona Estrategica"
-];
-
-
-// Simulados (deberán venir desde API)
 const hotelesIndividuales = [
   { id: 101, nombre: "Hotel Riviera", seleccionado: false },
   { id: 102, nombre: "Hotel Playa Azul", seleccionado: false },
@@ -985,154 +1194,74 @@ const resetSeleccion = () => {
   busquedaHotel.value = ''
 }
 
-// 🔍 Buscar hoteles de corporativo seleccionado
 const buscarHotelesCorporativo = () => {
   if (!corporativoSeleccionado.value) return
   buscandoHoteles.value = true
-
   setTimeout(() => {
     hotelesFiltrados.value = [...hotelesCorporativos]
     buscandoHoteles.value = false
   }, 800)
 }
 
-// 🔍 Buscar por ID o nombre
 const buscarHotelesIndividual = () => {
   if (!busquedaHotel.value) {
-    alertaPaso6.value = '⚠️ Ingresa al menos un ID o nombre para buscar.'
+    alertaPaso6.value = '⚠️ Ingresa al menos un ID o nombre.'
     setTimeout(() => (alertaPaso6.value = ''), 3000)
     return
   }
-
   buscandoHoteles.value = true
   const terminos = busquedaHotel.value.split(',').map(t => t.trim().toLowerCase())
-
   setTimeout(() => {
-    hotelesFiltrados.value = hotelesIndividuales.filter(hotel =>
-      terminos.some(t => hotel.nombre.toLowerCase().includes(t) || String(hotel.id).includes(t))
+    hotelesFiltrados.value = hotelesIndividuales.filter(h =>
+      terminos.some(t => h.nombre.toLowerCase().includes(t) || String(h.id).includes(t))
     )
     buscandoHoteles.value = false
   }, 800)
 }
 
-// 🔘 Seleccionar todos
 const toggleTodos = () => {
   hotelesFiltrados.value.forEach(h => (h.seleccionado = seleccionarTodos.value))
 }
 
-// ✅ Validar paso
+const hotelesSeleccionados = computed(() =>
+  hotelesFiltrados.value.filter(h => h.seleccionado)
+)
+
 const validarPaso6 = () => {
   if (!form.tipoHotel) {
     alertaPaso6.value = '⚠️ Selecciona el tipo de acuerdo con hotel.'
     setTimeout(() => (alertaPaso6.value = ''), 3000)
     return
   }
-
   const seleccionados = hotelesFiltrados.value.filter(h => h.seleccionado)
   if (seleccionados.length === 0) {
-    alertaPaso6.value = '⚠️ Debes seleccionar al menos un hotel para continuar.'
+    alertaPaso6.value = '⚠️ Debes seleccionar al menos un hotel.'
     setTimeout(() => (alertaPaso6.value = ''), 3000)
     return
   }
-
   nextStep()
 }
 
 
-const vistaPreviaPDF = () => {
-  alert('📝 Aquí se generará la vista previa del PDF (pendiente de conexión).')
-}
-
+/* =====================================================
+   🚀 PASO 7 – Confirmación final
+===================================================== */
 const finalizarAcuerdo = () => {
-  mensajeExito.value = '✅ Acuerdo creado con éxito'
-  setTimeout(() => {
-    mensajeExito.value = ''
-    router.push('/home') // redirige al home
-  }, 1000)
-}
-
-
-const step = ref(1)
-const selectedOption = ref<string | null>(null)
-const fileName = ref<string | null>(null)
-
-const form = reactive({
-  equipo: '',
-  tipoAcuerdo: '',
-  folioMedia: '',
-  moneda: '',
-  precioSinIVA: '',
-  iva: '',
-  porcentaje: '',
-  tipo: '',
-  fechaInicio: '',
-  fechaTermino: '',
-  comprobante: '',
-  numeroFactura: '',
-  fechaFacturacion: '',
-  formaPago: '',
-  comentarios: '',
-  clienteRFC: '',
-  contabilidadNombre: '',
-  contabilidadCargo: '',
-  contabilidadEmail: '',
-  contabilidadTelefono: '',
-  marketingNombre: '',
-  marketingCargo: '',
-  marketingEmail: '',
-  marketingTelefono: ''
-})
-
-
-const alertaPaso1 = ref('')
-
-const handleFileUpload = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  if (!target.files || target.files.length === 0) {
-    fileName.value = null
-    return
+  console.log('🧾 Entrando a finalizarAcuerdo con opción:', form.tipoSeleccion)
+  if (form.tipoSeleccion === 'pdf') {
+    generarAcuerdoPDF(form, hotelesSeleccionados.value)
+  } else {
+    mensajeExito.value = '✅ Acuerdo creado con éxito'
+    setTimeout(() => router.push('/home'), 1000)
   }
-
-  const file = target.files[0]
-  const allowedTypes = ['application/pdf', 'image/png']
-  const maxSize = 10 * 1024 * 1024 // 10 MB
-
-  // Validar tipo de archivo
-  if (!allowedTypes.includes(file.type)) {
-    alertaPaso1.value = '⚠️ Solo se permiten archivos PDF o PNG.'
-    fileName.value = null
-    target.value = '' // limpiar input
-    setTimeout(() => (alertaPaso1.value = ''), 3000)
-    return
-  }
-
-  // Validar tamaño
-  if (file.size > maxSize) {
-    alertaPaso1.value = '⚠️ El archivo no debe superar los 10 MB.'
-    fileName.value = null
-    target.value = '' // limpiar input
-    setTimeout(() => (alertaPaso1.value = ''), 3000)
-    return
-  }
-
-  // Si pasa las validaciones
-  fileName.value = file.name
-}
-
-const nextStep = () => {
-  if (step.value < 7) step.value++ // 🔹 te prepara hasta el paso 6
-}
-
-const submitForm = () => {
-  // por ahora solo para pruebas, luego conectamos con backend
-  alert(`✅ Datos guardados temporalmente.\nPaso actual: ${step.value}`)
-}
-
-
-const prevStep = () => {
-  step.value--
 }
 
 
 
+/* =====================================================
+   🧭 NAVEGACIÓN ENTRE PASOS
+===================================================== */
+const nextStep = () => { if (step.value < 7) step.value++ }
+const prevStep = () => { if (step.value > 1) step.value-- }
+const submitForm = () => alert(`✅ Datos guardados.\nPaso actual: ${step.value}`)
 </script>
