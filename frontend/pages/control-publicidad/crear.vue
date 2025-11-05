@@ -13,20 +13,19 @@
 
       <!-- Contenedor del formulario -->
       <div class="bg-white shadow-md rounded-2xl border border-gray-100 p-8">
-        <!-- Paso 1 -->
-        <div v-if="step === 1">
+      <!-- Paso 1 -->
+      <div v-if="step === 1">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">
-            Paso 1: Selección del tipo de acuerdo
+          Paso 1: Selección del tipo de acuerdo
         </h2>
         <p class="text-sm text-gray-500 mb-6">(*) Campos obligatorios</p>
 
         <p class="text-gray-600 mb-6">
-            Primero debe seleccionar si desea
-            <strong>generar un PDF</strong> o
-            <strong>subir un acuerdo existente</strong>.
+          Selecciona si deseas <strong>generar un PDF</strong> o 
+          <strong>trabajar con un acuerdo existente</strong>.
         </p>
 
-        <!-- Botones de selección -->
+        <!-- Botones -->
         <div class="flex flex-col sm:flex-row gap-4 mb-8">
           <button
             @click="() => { selectedOption = 'pdf'; form.tipoSeleccion = 'pdf' }"
@@ -51,43 +50,68 @@
           >
             ⬆️ Subir Acuerdo
           </button>
-
-
         </div>
 
-        <!-- Si elige subir, aparece input -->
-        <div v-if="selectedOption === 'upload'" class="mb-6">
-            <label class="block text-gray-700 font-medium mb-2">
-            Cargar archivo desde su computadora (*)
+        <!-- NUEVO: Opciones para acuerdo -->
+        <div v-if="selectedOption === 'upload'" class="space-y-4">
+          <label class="block text-gray-700 font-medium">Tipo de carga</label>
+          <div class="flex gap-6">
+            <label class="flex items-center gap-2">
+              <input
+                type="radio"
+                value="nuevo"
+                v-model="tipoCarga"
+                class="w-4 h-4 text-blue-500 focus:ring-blue-400"
+              />
+              <span>Nuevo</span>
             </label>
-            <input
-            type="file"
-            accept=".pdf,.png"
-            @change="handleFileUpload"
-            class="w-full border border-gray-300 rounded-lg px-4 py-2 cursor-pointer hover:border-blue-400 transition"
-            />
-            <p v-if="fileName" class="text-sm text-gray-500 mt-2">
-            Archivo seleccionado: <strong>{{ fileName }}</strong>
-            </p>
+
+            <label class="flex items-center gap-2">
+              <input
+                type="radio"
+                value="pendiente"
+                v-model="tipoCarga"
+                class="w-4 h-4 text-blue-500 focus:ring-blue-400"
+              />
+              <span>Pendiente</span>
+            </label>
+          </div>
+
+          <!-- Si es pendiente -->
+          <div v-if="tipoCarga === 'pendiente'" class="mt-4">
+            <label class="block text-gray-700 font-medium mb-2">Selecciona acuerdo pendiente</label>
+            <select
+              v-model="acuerdoSeleccionado"
+              @change="cargarDatosAcuerdo"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Seleccione un acuerdo</option>
+              <option v-for="a in acuerdosPendientes" :key="a.id" :value="a.id">
+                Acuerdo {{ a.id }}
+              </option>
+            </select>
+          </div>
         </div>
 
         <!-- Botones de navegación -->
         <div class="flex justify-between mt-10">
-            <button
+          <button
             disabled
             class="px-6 py-2 rounded-lg bg-gray-200 text-gray-400 font-semibold cursor-not-allowed"
-            >
+          >
             Anterior
-            </button>
+          </button>
 
-            <button
+          <button
             @click="nextStep"
             :disabled="!selectedOption"
             class="bg-gradient-to-r from-yellow-400 via-pink-600 to-sky-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-transform hover:scale-[1.03]"
-            >
+          >
             Siguiente
-            </button>
+          </button>
         </div>
+
+
         <!-- Notificación -->
         <transition name="fade">
           <div
@@ -206,15 +230,31 @@
 
             <!-- Porcentaje (solo si es Fondo Media) -->
             <div v-if="form.tipoAcuerdo === 'Fondo Media'">
-                <label class="block text-gray-700 font-medium mb-2">Porcentaje</label>
-                <select
-                v-model="form.porcentaje"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                <option value="">Seleccione porcentaje</option>
-                <option v-for="n in 10" :key="n" :value="n">{{ n }}%</option>
-                </select>
+              <label class="block text-gray-700 font-medium mb-3">Porcentaje</label>
+
+              <div class="flex items-center gap-4">
+                <!-- Slider -->
+                <input
+                  type="range"
+                  v-model.number="form.porcentaje"
+                  min="0.5"
+                  max="10"
+                  step="0.5"
+                  class="w-full accent-pink-600 cursor-pointer"
+                />
+
+                <!-- Valor actual -->
+                <span class="text-gray-700 font-semibold w-12 text-right">
+                  {{ Number(form.porcentaje).toFixed(1) }}%
+                </span>
+              </div>
+
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>0.5%</span>
+                <span>10%</span>
+              </div>
             </div>
+
 
             <!-- Tipo (solo si es Fondo Media) -->
             <div v-if="form.tipoAcuerdo === 'Fondo Media'">
@@ -273,13 +313,19 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Fecha inicio -->
             <div>
-                <label class="block text-gray-700 font-medium mb-2">Fecha de inicio (*)</label>
-                <input
+              <label class="block text-gray-700 font-medium mb-2">Fecha de inicio (*)</label>
+              <input
                 v-model="form.fechaInicio"
                 type="date"
+                :min="`${currentYear}-01-01`"
+                :max="`${currentYear}-12-31`"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+              />
+              <p class="text-xs text-gray-500 mt-1">
+                Solo se permiten fechas dentro del año {{ currentYear }}.
+              </p>
             </div>
+
 
             <!-- Fecha término -->
             <div>
@@ -630,28 +676,58 @@
             </div>
 
             <!-- Si es Individual -->
-            <div v-if="form.tipoHotel === 'Individual'" class="mt-4">
-            <label class="block text-gray-700 font-medium mb-2">ID o Nombre del hotel (*)</label>
-            <input
-                v-model="busquedaHotel"
-                @keyup.enter="buscarHotelesIndividual"
-                type="text"
-                placeholder="Ejemplo: 100101, Hotel1, Hotel2"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <p class="text-xs text-gray-500 mt-1">
-                Usar comas (,) como separador para búsquedas avanzadas. Ejemplo: 100101, Hotel1, 123456.
-            </p>
-            <div class="flex justify-end mt-2">
-                <button
-                type="button"
-                @click="buscarHotelesIndividual"
-                class="bg-blue-500 text-white px-5 py-1 rounded-lg text-sm hover:bg-blue-600 transition"
+            <!-- Si es Individual -->
+            <div v-if="form.tipoHotel === 'Individual'" class="mt-4 space-y-4">
+              <h3 class="text-gray-700 font-medium mb-3">Filtros de búsqueda</h3>
+
+              <!-- Gerente -->
+              <div>
+                <label class="block text-gray-700 font-medium mb-2">Gerente</label>
+                <select
+                  v-model="filtroGerente"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                Buscar
+                  <option value="">Seleccione un gerente</option>
+                  <option v-for="nombre in listaGerentes" :key="nombre" :value="nombre">
+                    {{ nombre }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- MarketRPC -->
+              <div>
+                <label class="block text-gray-700 font-medium mb-2">MarketRPC</label>
+                <input
+                  v-model="filtroMarket"
+                  type="text"
+                  placeholder="Ingrese el MarketRPC..."
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <!-- Destino -->
+              <div>
+                <label class="block text-gray-700 font-medium mb-2">Destino</label>
+                <input
+                  v-model="filtroDestino"
+                  type="text"
+                  placeholder="Ingrese el destino..."
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <!-- Botón de búsqueda -->
+              <div class="flex justify-end mt-4">
+                <button
+                  type="button"
+                  @click="buscarHotelesIndividual"
+                  class="bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
+                >
+                  Buscar
                 </button>
+              </div>
             </div>
-            </div>
+
 
             <!-- Tabla de resultados -->
             <div v-if="hotelesFiltrados.length" class="mt-6 overflow-x-auto">
@@ -736,28 +812,42 @@
 
           <!-- Si subió un archivo -->
           <div v-if="selectedOption === 'upload'" class="flex flex-col items-center space-y-6">
-            <h3 class="text-md font-semibold text-gray-700 mb-2">📎 Archivo cargado</h3>
+            <h3 class="text-md font-semibold text-gray-700 mb-2">📎 Subir archivo del acuerdo</h3>
 
-            <div class="w-full md:w-3/4 lg:w-2/3 bg-gray-100 p-4 rounded-lg shadow-inner">
-              <div v-if="fileName && fileType === 'application/pdf'">
-                <iframe
-                  :src="filePreview"
-                  class="w-full h-[600px] rounded-lg border"
-                  title="Vista previa del PDF"
-                ></iframe>
+            <!-- Campo para subir archivo -->
+            <div
+              class="w-full md:w-3/4 lg:w-2/3 bg-gray-50 border-2 border-dashed border-gray-300 p-8 rounded-xl hover:border-blue-400 transition"
+            >
+              <input
+                type="file"
+                accept="application/pdf,image/png"
+                @change="manejarArchivo"
+                class="block w-full text-sm text-gray-600 cursor-pointer"
+              />
+
+              <!-- Vista previa -->
+              <div v-if="filePreview" class="mt-6">
+                <h4 class="font-medium text-gray-700 mb-3">Vista previa:</h4>
+
+                <div v-if="fileType === 'application/pdf'">
+                  <iframe
+                    :src="filePreview"
+                    class="w-full h-[600px] rounded-lg border"
+                    title="Vista previa del PDF"
+                  ></iframe>
+                </div>
+
+                <div v-else-if="fileType === 'image/png'">
+                  <img
+                    :src="filePreview"
+                    alt="Vista previa del acuerdo"
+                    class="mx-auto max-h-[600px] rounded-lg shadow-md"
+                  />
+                </div>
               </div>
-
-              <div v-else-if="fileName && fileType === 'image/png'">
-                <img
-                  :src="filePreview"
-                  alt="Vista previa del acuerdo"
-                  class="mx-auto max-h-[600px] rounded-lg shadow-md"
-                />
-              </div>
-
-              <p v-else class="text-gray-500 italic">No hay archivo para mostrar.</p>
             </div>
 
+            <!-- Ver detalles -->
             <button
               type="button"
               @click="mostrarModal = true"
@@ -817,15 +907,15 @@
               Anterior
             </button>
 
+            <!-- Botón final dinámico -->
             <button
               type="button"
               @click="finalizarAcuerdo"
               class="bg-gradient-to-r from-yellow-400 via-pink-600 to-sky-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:scale-[1.03] transition-transform"
             >
-              Terminar
+              {{ form.tipoSeleccion === 'upload' ? 'Subir' : 'Generar' }}
             </button>
           </div>
-
 
           <!-- Modal detalles -->
           <transition name="fade">
@@ -833,88 +923,100 @@
               v-if="mostrarModal"
               class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
             >
-            <div class="bg-white rounded-xl shadow-lg w-11/12 md:w-2/3 lg:w-2/3 p-8 relative max-h-[80vh] overflow-y-auto">
-              <button
-                @click="mostrarModal = false"
-                class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl"
+              <div
+                class="bg-white rounded-xl shadow-lg w-11/12 md:w-2/3 lg:w-2/3 p-8 relative max-h-[80vh] overflow-y-auto"
               >
-                ✖
-              </button>
+                <button
+                  @click="mostrarModal = false"
+                  class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  ✖
+                </button>
 
-              <h3 class="text-lg font-semibold text-gray-700 mb-6 text-center">
-                Detalles del Acuerdo
-              </h3>
+                <h3 class="text-lg font-semibold text-gray-700 mb-6 text-center">
+                  Detalles del Acuerdo
+                </h3>
 
-              <!-- Info general -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-2 text-left">
-                <p><strong>Equipo:</strong> {{ form.equipo }}</p>
-                <p><strong>Tipo de acuerdo:</strong> {{ form.tipoAcuerdo }}</p>
+                <!-- Información general -->
+                <div class="space-y-8">
+                  <!-- Datos generales -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-2 text-left">
+                    <p><strong>Equipo:</strong> {{ form.equipo }}</p>
+                    <p><strong>Tipo de acuerdo:</strong> {{ form.tipoAcuerdo }}</p>
 
-                <p><strong>Moneda:</strong> {{ form.moneda }}</p>
-                <p><strong>IVA:</strong> {{ form.iva ? form.iva + '%' : '—' }}</p>
+                    <p><strong>Moneda:</strong> {{ form.moneda }}</p>
+                    <p><strong>IVA:</strong> {{ form.iva ? form.iva + '%' : '—' }}</p>
 
-                <p><strong>Precio sin IVA:</strong> {{ formatMoney(form.precioSinIVA, form.moneda) }}</p>
-                <p v-if="form.tipoAcuerdo === 'Fondo Media'"><strong>Porcentaje (FM):</strong> {{ form.porcentaje ? form.porcentaje + '%' : '—' }}</p>
+                    <p><strong>Precio sin IVA:</strong> {{ formatMoney(form.precioSinIVA, form.moneda) }}</p>
+                    <p v-if="form.tipoAcuerdo === 'Fondo Media'">
+                      <strong>Porcentaje (FM):</strong> {{ form.porcentaje ? form.porcentaje + '%' : '—' }}
+                    </p>
 
-                <p><strong>Fecha inicio:</strong> {{ formatDate(form.fechaInicio) }}</p>
-                <p><strong>Fecha término:</strong> {{ formatDate(form.fechaTermino) }}</p>
+                    <p><strong>Fecha inicio:</strong> {{ formatDate(form.fechaInicio) }}</p>
+                    <p><strong>Fecha término:</strong> {{ formatDate(form.fechaTermino) }}</p>
 
-                <p><strong>Folio Media:</strong> {{ form.folioMedia || '—' }}</p>
-                <p v-if="form.tipoAcuerdo === 'Fondo Media'"><strong>Tipo (FM):</strong> {{ form.tipo || '—' }}</p>
+                    <p><strong>Folio Media:</strong> {{ form.folioMedia || '—' }}</p>
+                    <p v-if="form.tipoAcuerdo === 'Fondo Media'">
+                      <strong>Tipo (FM):</strong> {{ form.tipo || '—' }}
+                    </p>
 
-                <p><strong>Comprobante:</strong> {{ form.comprobante || '—' }}</p>
-                <p><strong>Núm. factura:</strong> {{ form.numeroFactura || '—' }}</p>
+                    <p><strong>Comprobante:</strong> {{ form.comprobante || '—' }}</p>
+                    <p><strong>Núm. factura:</strong> {{ form.numeroFactura || '—' }}</p>
 
-                <p><strong>Fecha facturación:</strong> {{ formatDate(form.fechaFacturacion) }}</p>
-                <p><strong>Forma de pago:</strong> {{ form.formaPago || '—' }}</p>
+                    <p><strong>Fecha facturación:</strong> {{ formatDate(form.fechaFacturacion) }}</p>
+                    <p><strong>Forma de pago:</strong> {{ form.formaPago || '—' }}</p>
 
-                <p class="md:col-span-2"><strong>Cliente/RFC:</strong> {{ form.clienteRFC }}</p>
-                <p class="md:col-span-2"><strong>Tipo hotel:</strong> {{ form.tipoHotel || '—' }}</p>
-                <p v-if="form.tipoHotel === 'Corporativo'" class="md:col-span-2">
-                  <strong>Corporativo seleccionado:</strong> {{ corporativoSeleccionado || '—' }}
-                </p>
+                    <p class="md:col-span-2"><strong>Cliente/RFC:</strong> {{ form.clienteRFC }}</p>
+                    <p class="md:col-span-2"><strong>Tipo hotel:</strong> {{ form.tipoHotel || '—' }}</p>
 
-                <div class="md:col-span-2">
-                  <strong>Comentarios:</strong>
-                  <div class="mt-1 whitespace-pre-wrap text-gray-700">
-                    {{ form.comentarios || '—' }}
+                    <p v-if="form.tipoHotel === 'Corporativo'" class="md:col-span-2">
+                      <strong>Corporativo seleccionado:</strong> {{ corporativoSeleccionado || '—' }}
+                    </p>
+
+                    <!-- Comentarios -->
+                    <div class="md:col-span-2 mt-2">
+                      <strong>Comentarios:</strong>
+                      <div
+                        class="mt-1 whitespace-pre-wrap text-gray-700 border border-gray-200 rounded-md p-3 bg-gray-50"
+                      >
+                        {{ form.comentarios || '—' }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Hoteles seleccionados -->
+                  <div>
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Hoteles seleccionados</h4>
+                    <div v-if="hotelesSeleccionados.length">
+                      <ul class="list-disc pl-6 space-y-1">
+                        <li v-for="h in hotelesSeleccionados" :key="h.id">
+                          <span class="font-medium">#{{ h.id }}</span> — {{ h.nombre }}
+                        </li>
+                      </ul>
+                    </div>
+                    <p v-else class="text-gray-500">No hay hoteles seleccionados.</p>
+                  </div>
+
+                  <!-- Contactos -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                      <h4 class="font-semibold text-gray-700 mb-3 border-b pb-1">Contacto Contabilidad</h4>
+                      <p><strong>Nombre:</strong> {{ form.contabilidadNombre || '—' }}</p>
+                      <p><strong>Cargo:</strong> {{ form.contabilidadCargo || '—' }}</p>
+                      <p><strong>E-mail:</strong> {{ form.contabilidadEmail || '—' }}</p>
+                      <p><strong>Teléfono:</strong> {{ form.contabilidadTelefono || '—' }}</p>
+                    </div>
+
+                    <div>
+                      <h4 class="font-semibold text-gray-700 mb-3 border-b pb-1">Contacto Marketing</h4>
+                      <p><strong>Nombre:</strong> {{ form.marketingNombre || '—' }}</p>
+                      <p><strong>Cargo:</strong> {{ form.marketingCargo || '—' }}</p>
+                      <p><strong>E-mail:</strong> {{ form.marketingEmail || '—' }}</p>
+                      <p><strong>Teléfono:</strong> {{ form.marketingTelefono || '—' }}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <!-- Hoteles seleccionados -->
-              <div class="mt-6">
-                <h4 class="font-semibold text-gray-700 mb-2">Hoteles seleccionados</h4>
-                <div v-if="hotelesSeleccionados.length">
-                  <ul class="list-disc pl-6 space-y-1">
-                    <li v-for="h in hotelesSeleccionados" :key="h.id">
-                      <span class="font-medium">#{{ h.id }}</span> — {{ h.nombre }}
-                    </li>
-                  </ul>
-                </div>
-                <p v-else class="text-gray-500">No hay hoteles seleccionados.</p>
-              </div>
-
-              <!-- Contactos -->
-              <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                  <h4 class="font-semibold text-gray-700 mb-3 border-b pb-1">Contacto Contabilidad</h4>
-                  <p><strong>Nombre:</strong> {{ form.contabilidadNombre || '—' }}</p>
-                  <p><strong>Cargo:</strong> {{ form.contabilidadCargo || '—' }}</p>
-                  <p><strong>E-mail:</strong> {{ form.contabilidadEmail || '—' }}</p>
-                  <p><strong>Teléfono:</strong> {{ form.contabilidadTelefono || '—' }}</p>
-                </div>
-
-                <div>
-                  <h4 class="font-semibold text-gray-700 mb-3 border-b pb-1">Contacto Marketing</h4>
-                  <p><strong>Nombre:</strong> {{ form.marketingNombre || '—' }}</p>
-                  <p><strong>Cargo:</strong> {{ form.marketingCargo || '—' }}</p>
-                  <p><strong>E-mail:</strong> {{ form.marketingEmail || '—' }}</p>
-                  <p><strong>Teléfono:</strong> {{ form.marketingTelefono || '—' }}</p>
-                </div>
-              </div>
-            </div>
-
             </div>
           </transition>
 
@@ -928,6 +1030,7 @@
             </div>
           </transition>
         </div>
+
 
       </div>
     </main>
@@ -971,7 +1074,7 @@ const form = reactive({
   moneda: '',
   precioSinIVA: '',
   iva: '',
-  porcentaje: '',
+  porcentaje: 0, // antes estaba como string vacío ''
   tipo: '',
   // Paso 3
   fechaInicio: '',
@@ -1026,36 +1129,20 @@ const formatMoney = (val: any, currency = 'MXN') => {
 ===================================================== */
 const alertaPaso1 = ref('')
 
-const handleFileUpload = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  if (!target.files || target.files.length === 0) {
-    fileName.value = null
-    fileType.value = ''
-    filePreview.value = ''
-    return
-  }
+// Estado del tipo de carga
+const tipoCarga = ref('nuevo')
+const acuerdoSeleccionado = ref('')
+const acuerdosPendientes = ref([
+  { id: '339398', data: { clienteRFC: 'MXC123456789', equipo: 'RCP México', tipoAcuerdo: 'Fondo Media', moneda: 'MXN', precioSinIVA: '10000', iva: '16', porcentaje: '10', tipo: 'Estancias', fechaInicio: '2025-01-01', fechaTermino: '2025-06-30', comprobante: 'Factura', numeroFactura: '1', fechaFacturacion: '2025-01-15', formaPago: 'Transferencia', comentarios: 'Acuerdo pendiente migrado.', contabilidadNombre: 'Laura Gómez', contabilidadEmail: 'laura.gomez@pricetravel.com', marketingNombre: 'Carlos Herrera', marketingEmail: 'carlos.herrera@pricetravel.com', tipoHotel: 'Individual' }},
+  { id: '47474', data: { clienteRFC: 'CO123456789', equipo: 'RCP Colombia', tipoAcuerdo: 'Paquete Fijo', moneda: 'COP', precioSinIVA: '50000000', iva: '19', fechaInicio: '2025-02-01', fechaTermino: '2025-07-31', comprobante: 'Invoice', numeroFactura: '2', formaPago: 'Descuento', comentarios: 'Campaña Colombia Q1.' }}
+])
 
-  const file = target.files[0]
-  const allowedTypes = ['application/pdf', 'image/png']
-  const maxSize = 10 * 1024 * 1024 // 10 MB
-
-  if (!allowedTypes.includes(file.type)) {
-    alertaPaso1.value = '⚠️ Solo se permiten archivos PDF o PNG.'
-    target.value = ''
-    setTimeout(() => (alertaPaso1.value = ''), 3000)
-    return
-  }
-
-  if (file.size > maxSize) {
-    alertaPaso1.value = '⚠️ El archivo no debe superar los 10 MB.'
-    target.value = ''
-    setTimeout(() => (alertaPaso1.value = ''), 3000)
-    return
-  }
-
-  fileName.value = file.name
-  fileType.value = file.type
-  filePreview.value = URL.createObjectURL(file)
+// Función simulada de carga
+const cargarDatosAcuerdo = () => {
+  const acuerdo = acuerdosPendientes.value.find(a => a.id === acuerdoSeleccionado.value)
+  if (!acuerdo) return
+  Object.assign(form, acuerdo.data)
+  alert(`✅ Acuerdo ${acuerdoSeleccionado.value} cargado exitosamente.`)
 }
 
 
@@ -1099,6 +1186,9 @@ const validarPaso2 = () => {
    📅 PASO 3 – Periodo del acuerdo
 ===================================================== */
 const alertaPaso3 = ref('')
+// Año actual (para limitar fecha de inicio)
+const currentYear = new Date().getFullYear()
+
 
 const validarPaso3 = () => {
   if (!form.fechaInicio || !form.fechaTermino) {
@@ -1202,6 +1292,20 @@ const seleccionarTodos = ref(false)
 const corporativoSeleccionado = ref('')
 const buscandoHoteles = ref(false)
 const busquedaHotel = ref('')
+// 🔍 Filtros Individual
+const filtroGerente = ref('')
+const filtroMarket = ref('')
+const filtroDestino = ref('')
+
+const listaGerentes = [
+  'Laura Gómez',
+  'Carlos Herrera',
+  'Andrea López',
+  'Fernando Díaz',
+  'Sofía Martínez',
+  'José Ramírez'
+]
+
 
 const corporativosDisponibles = [ "AA-Independent", "Accor", "Akela", "Alsol", "Americas Hotels Group", "Aristos", "Ayenda Hoteles", "B&B Hoteles", "Bahia Principe", "Barcelo", "Be Live", "Belmond", "Best Western", "BH Hoteles", "Blue Doors", "Blue Tree", "BlueBay", "Böëna Wilderness Lodge", "Bourbon", "Caesars Entertainment", "Camino Real", "Carimundi", "Casa Andina", "Catalonia", "CHL Suites", "CHOICE", "Costa del Sol", "Daniel Reyes", "Dann", "Decameron", "Disney", "Dorado Plaza", "DOT Hotels", "El Dorado San Andrés", "EM Hotels", "Emporio", "Enjoy Cuba", "ePhoneix", "Estelar", "Eurostars Hotels", "Fairmont", "Faranda Hotels", "Fasano", "Fontan", "GHL", "Grupo Habita", "Grupo Milenium", "GRUPO POSADAS", "Grupo Welcome", "Hardrock", "Havanatur / Tainotur", "Hilton", "HM Hotels", "Hotel Gallery", "Hoteles Cosmos", "Hoteles Geh Suites", "Hoteles Movich", "Hoteles San Agustin", "Hoteles Solar", "Hoteles Xcaret", "Hotusa Hotels", "Hover Tours", "Hyatt", "Hyatt Inclusive Collection", "Iberostar", "IHG", "Intercity", "Islander Collection", "Karisma", "Krystal", "LAHRES", "Las Brisas", "Latour", "Lomas Hospitality", "Louvre Hotels Group", "Lucerna", "Marival", "Marriott", "MasHoteles", "Mayan Palace", "Melia", "MGM Resorts", "Mision", "MS Hoteles", "NH", "Oasis", "Ocean by H10", "Oetker Collection", "Omni", "On Vacation", "Operadora SI", "Original Resorts", "Ostar", "Oxo Hotel", "Oyo Rooms", "Palace", "Palladium Hotel Group", "Park Royal", "Playa Resorts", "PortoBay", "Presidente Intercontinental", "Prisma Hoteles", "Proturs", "Pueblo Bonito", "RCD HOTELS", "Regency & Santorini", "RIU", "Rosewood Hotels", "Royalton Hotels & Resorts", "Sandals", "Sandos", "Selina", "Sercotel", "Sonesta", "Station Casinos", "The Cayuga Collection", "The Q Project", "Travelers", "Universal", "Velas Resorts", "Viaggio", "Vila Galé", "Villa Group", "Wyndham", "Wynn Las Vegas", "Zar", "Zona Estrategica" ];
 
@@ -1238,20 +1342,33 @@ const buscarHotelesCorporativo = () => {
 }
 
 const buscarHotelesIndividual = () => {
-  if (!busquedaHotel.value) {
-    alertaPaso6.value = '⚠️ Ingresa al menos un ID o nombre.'
+  if (!filtroGerente.value && !filtroMarket.value && !filtroDestino.value) {
+    alertaPaso6.value = '⚠️ Ingresa al menos un filtro (Gerente, MarketRPC o Destino).'
     setTimeout(() => (alertaPaso6.value = ''), 3000)
     return
   }
+
   buscandoHoteles.value = true
-  const terminos = busquedaHotel.value.split(',').map(t => t.trim().toLowerCase())
+  hotelesFiltrados.value = [] // Limpia antes de buscar
+
   setTimeout(() => {
-    hotelesFiltrados.value = hotelesIndividuales.filter(h =>
-      terminos.some(t => h.nombre.toLowerCase().includes(t) || String(h.id).includes(t))
-    )
+    // Simulación de búsqueda local (puedes conectar a backend después)
+    hotelesFiltrados.value = hotelesIndividuales.filter(h => {
+      const matchGerente = filtroGerente.value ? h.nombre.includes('Hotel') : true
+      const matchMarket = filtroMarket.value ? true : true // Simulado
+      const matchDestino = filtroDestino.value ? true : true // Simulado
+      return matchGerente && matchMarket && matchDestino
+    })
+
     buscandoHoteles.value = false
-  }, 800)
+
+    if (!hotelesFiltrados.value.length) {
+      alertaPaso6.value = '⚠️ No se encontraron hoteles con esos filtros.'
+      setTimeout(() => (alertaPaso6.value = ''), 3000)
+    }
+  }, 1000)
 }
+
 
 const toggleTodos = () => {
   hotelesFiltrados.value.forEach(h => (h.seleccionado = seleccionarTodos.value))
@@ -1276,10 +1393,6 @@ const validarPaso6 = () => {
   nextStep()
 }
 
-
-/* =====================================================
-   🚀 PASO 7 – Confirmación final
-===================================================== */
 /* =====================================================
    🚀 PASO 7 – Confirmación final
 ===================================================== */
@@ -1330,6 +1443,20 @@ const finalizarAcuerdo = async () => {
     mensajeExito.value = '✅ Acuerdo creado con éxito.'
     setTimeout(() => router.push('/home'), 1500)
   }
+}
+
+
+// 📂 Manejo del archivo subido
+const manejarArchivo = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  fileName.value = file.name
+  fileType.value = file.type
+  filePreview.value = URL.createObjectURL(file)
+
+  console.log('📁 Archivo seleccionado:', file.name, file.type)
 }
 
 
