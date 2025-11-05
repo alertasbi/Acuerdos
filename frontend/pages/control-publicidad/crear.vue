@@ -738,7 +738,6 @@
           <div v-if="selectedOption === 'upload'" class="flex flex-col items-center space-y-6">
             <h3 class="text-md font-semibold text-gray-700 mb-2">📎 Archivo cargado</h3>
 
-            <!-- Vista previa -->
             <div class="w-full md:w-3/4 lg:w-2/3 bg-gray-100 p-4 rounded-lg shadow-inner">
               <div v-if="fileName && fileType === 'application/pdf'">
                 <iframe
@@ -759,7 +758,6 @@
               <p v-else class="text-gray-500 italic">No hay archivo para mostrar.</p>
             </div>
 
-            <!-- Botón de detalles -->
             <button
               type="button"
               @click="mostrarModal = true"
@@ -769,12 +767,47 @@
             </button>
           </div>
 
-          <!-- Si eligió generar PDF (lo trabajaremos después) -->
-          <div v-else class="text-gray-600 italic mt-10">
-            📝 Generando vista previa del PDF... (pendiente de implementación)
+          <!-- Si eligió generar PDF -->
+          <div v-else-if="form.tipoSeleccion === 'pdf'" class="flex flex-col items-center space-y-6">
+            <h3 class="text-md font-semibold text-gray-700 mb-2">📝 Acuerdo generado</h3>
+
+            <!-- Botón para generar el PDF real -->
+            <button
+              type="button"
+              @click="generarPDFReal"
+              class="bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-600 transition"
+            >
+              🧾 Generar PDF del acuerdo
+            </button>
+
+            <!-- Vista previa del PDF generado -->
+            <div v-if="pdfRealUrl" class="w-full md:w-3/4 lg:w-2/3 mt-6 bg-gray-100 p-4 rounded-lg shadow-inner">
+              <iframe
+                :src="pdfRealUrl"
+                class="w-full h-[600px] rounded-lg border"
+                title="PDF del acuerdo generado"
+              ></iframe>
+
+              <a
+                :href="pdfRealUrl"
+                download="acuerdo.pdf"
+                class="inline-block mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Descargar PDF
+              </a>
+            </div>
+
+            <!-- Ver detalles -->
+            <button
+              type="button"
+              @click="mostrarModal = true"
+              class="mt-4 bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
+              Ver detalles del acuerdo
+            </button>
           </div>
 
-          <!-- Botón terminar -->
+          <!-- Botones navegación -->
           <div class="flex justify-center mt-10 gap-6">
             <button
               type="button"
@@ -792,6 +825,7 @@
               Terminar
             </button>
           </div>
+
 
           <!-- Modal detalles -->
           <transition name="fade">
@@ -1246,13 +1280,55 @@ const validarPaso6 = () => {
 /* =====================================================
    🚀 PASO 7 – Confirmación final
 ===================================================== */
-const finalizarAcuerdo = () => {
-  console.log('🧾 Entrando a finalizarAcuerdo con opción:', form.tipoSeleccion)
-  if (form.tipoSeleccion === 'pdf') {
-    generarAcuerdoPDF(form, hotelesSeleccionados.value)
+/* =====================================================
+   🚀 PASO 7 – Confirmación final
+===================================================== */
+import { generarAcuerdoPDF } from '~/utils/generarAcuerdoPDF'
+
+const pdfPreviewUrl = ref<string | null>(null)
+const pdfRealUrl = ref<string | null>(null)
+
+/**
+ * Genera el PDF principal (acuerdo final)
+ */
+const generarPDFReal = async () => {
+  console.log('🚀 Generando PDF REAL con datos:', form, hotelesSeleccionados.value)
+
+  const blob = await generarAcuerdoPDF(form, hotelesSeleccionados.value)
+  console.log('📘 Resultado de generarAcuerdoPDF:', blob)
+
+  if (blob) {
+    pdfRealUrl.value = URL.createObjectURL(blob)
+    console.log('✅ PDF real generado correctamente.')
+    mensajeExito.value = '✅ PDF generado correctamente.'
+    setTimeout(() => (mensajeExito.value = ''), 2500)
   } else {
-    mensajeExito.value = '✅ Acuerdo creado con éxito'
-    setTimeout(() => router.push('/home'), 1000)
+    console.error('❌ No se pudo generar el PDF real.')
+    mensajeExito.value = '❌ Error al generar el PDF.'
+    setTimeout(() => (mensajeExito.value = ''), 2500)
+  }
+}
+
+/**
+ * Termina el flujo del acuerdo (guarda o redirige)
+ */
+const finalizarAcuerdo = async () => {
+  console.log('🧾 Entrando a finalizarAcuerdo con opción:', form.tipoSeleccion)
+
+  if (form.tipoSeleccion === 'pdf') {
+    // Si ya generó PDF, muestra mensaje y redirige
+    if (pdfRealUrl.value) {
+      mensajeExito.value = '✅ Acuerdo generado correctamente.'
+      setTimeout(() => router.push('/home'), 1500)
+    } else {
+      // Si aún no hay PDF generado, sugiere al usuario hacerlo antes
+      mensajeExito.value = '⚠️ Primero genera el PDF del acuerdo.'
+      setTimeout(() => (mensajeExito.value = ''), 3000)
+    }
+  } else {
+    // Caso: el usuario subió un archivo
+    mensajeExito.value = '✅ Acuerdo creado con éxito.'
+    setTimeout(() => router.push('/home'), 1500)
   }
 }
 
