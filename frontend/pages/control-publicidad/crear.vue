@@ -1137,12 +1137,18 @@ const acuerdosPendientes = ref([
   { id: '47474', data: { clienteRFC: 'CO123456789', equipo: 'RCP Colombia', tipoAcuerdo: 'Paquete Fijo', moneda: 'COP', precioSinIVA: '50000000', iva: '19', fechaInicio: '2025-02-01', fechaTermino: '2025-07-31', comprobante: 'Invoice', numeroFactura: '2', formaPago: 'Descuento', comentarios: 'Campaña Colombia Q1.' }}
 ])
 
-// Función simulada de carga
 const cargarDatosAcuerdo = () => {
   const acuerdo = acuerdosPendientes.value.find(a => a.id === acuerdoSeleccionado.value)
   if (!acuerdo) return
+
+  // Carga los datos en el formulario
   Object.assign(form, acuerdo.data)
+
+  // Alerta opcional visual
   alert(`✅ Acuerdo ${acuerdoSeleccionado.value} cargado exitosamente.`)
+
+  // 🔁 Salta directamente al paso 7
+  step.value = 7
 }
 
 
