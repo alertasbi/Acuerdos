@@ -297,7 +297,7 @@ def generar_pdf_detalle():
 
     # Título
     bloque_pago.append(Paragraph("<b>FORMA DE PAGO</b>", subtitle))
-    bloque_pago.append(Spacer(1, 2))
+    #bloque_pago.append(Spacer(1, 2))
 
     # Línea rosa delgada (alineada igual que las tablas)
     linea_pago = Table([[" "]], colWidths=[270], rowHeights=[0.8])
@@ -307,7 +307,7 @@ def generar_pdf_detalle():
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
     bloque_pago.append(linea_pago)
-    bloque_pago.append(Spacer(1, 4))
+    #bloque_pago.append(Spacer(1, 4))
 
     # Texto descriptivo
     texto_forma_pago = (
@@ -315,11 +315,18 @@ def generar_pdf_detalle():
         "facturación por producción de PriceTravel dentro de la vigencia de la publicidad contratada."
     )
 
+    # 🔹 Estilo sin espacio entre líneas
+    sin_interlineado = ParagraphStyle(
+        "sin_interlineado",
+        parent=small,
+        leading=small.fontSize,  # igual al tamaño de letra (sin espacio extra)
+    )
+
     # Tabla principal: columna izquierda (gris + rosa) y derecha (texto)
     t_pago = Table([
         [
             Paragraph("<b><font color='#ED1556'>Descuento</font></b>", label),
-            Paragraph(texto_forma_pago, small)
+            Paragraph(texto_forma_pago, sin_interlineado)
         ]
     ], colWidths=[85, 185])
     t_pago.setStyle(TableStyle([
@@ -346,9 +353,7 @@ def generar_pdf_detalle():
 
 
     # ======== BLOQUE 6: INFORMACIÓN BANCARIA ========
-    #elements.append(Spacer(1, 10))
     elements.append(Paragraph("<b>INFORMACIÓN BANCARIA</b>", subtitle))
-    #elements.append(Spacer(1, 2))
 
     # Línea rosa delgada (mismo ancho que el resto del documento)
     from reportlab.lib.units import inch
@@ -358,7 +363,6 @@ def generar_pdf_detalle():
         ("BACKGROUND", (0, 0), (-1, -1), pink),
     ]))
     elements.append(linea_bancos)
-    #elements.append(Spacer(1, 6))
 
     # Base de logos
     base_assets = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets")
@@ -386,7 +390,14 @@ def generar_pdf_detalle():
         },
     ]
 
-    # Contenedor general para alinear el bloque completo a la izquierda (igual que las tablas)
+    # 🔹 Estilo sin interlineado (dentro del mismo banco)
+    sin_interlineado_banco = ParagraphStyle(
+        "sin_interlineado_banco",
+        parent=small,
+        leading=small.fontSize,  # sin espacio entre líneas
+    )
+
+    # Contenedor general para alinear el bloque completo a la izquierda
     bloque_bancos = []
 
     for banco in bancos:
@@ -395,13 +406,14 @@ def generar_pdf_detalle():
         else:
             logo = Paragraph(" ", styles["Normal"])
 
-        # Cada cuenta en una línea sin salto
+        # 🔹 Crear párrafo sin interlineado interno
         cuentas_texto = "<br/>".join(banco["cuentas"])
-        texto = Paragraph(cuentas_texto, small)
+        texto = Paragraph(cuentas_texto, sin_interlineado_banco)
 
+        # 🔹 Armar la fila con logo + texto
         fila = Table(
             [[logo, texto]],
-            colWidths=[7 * mm, 400]  # 🔹 más ancho: evita saltos de línea
+            colWidths=[7 * mm, 400]
         )
         fila.setStyle(TableStyle([
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
@@ -410,17 +422,19 @@ def generar_pdf_detalle():
             ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ("TOPPADDING", (0, 0), (-1, -1), 0),
         ]))
-        bloque_bancos.append(fila)
-        bloque_bancos.append(Spacer(1, 4))  # Separación sutil
 
-    # 🔹 Envolver el bloque para que use el mismo margen que los demás
+        bloque_bancos.append(fila)
+        bloque_bancos.append(Spacer(1, 3))  # 🔹 espacio solo entre bancos (no dentro del mismo)
+
+    # 🔹 Envolver el bloque con el mismo margen que las demás secciones
     bloque_bancos_wrap = Table([[bloque_bancos]], colWidths=[440])
     bloque_bancos_wrap.hAlign = "LEFT"
     bloque_bancos_wrap.setStyle(TableStyle([
-        ("LEFTPADDING", (0, 0), (-1, -1), 15),  # mismo margen que tablas
+        ("LEFTPADDING", (0, 0), (-1, -1), 15),
         ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ]))
     elements.append(bloque_bancos_wrap)
+
     #elements.append(Spacer(1, 10))
 
 
