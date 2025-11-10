@@ -801,121 +801,139 @@
         </div>
 
 
-        <!-- Paso 7 -->
-        <div v-else-if="step === 7" class="text-center">
-          <h2 class="text-lg font-semibold text-gray-700 mb-2">
-            Paso 7: Confirmación final
-          </h2>
-          <p class="text-sm text-gray-500 mb-10">
-            Revise los datos antes de finalizar el acuerdo.
-          </p>
+      <!-- Paso 7 -->
+      <div v-else-if="step === 7" class="text-center">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">
+          Paso 7: Confirmación final
+        </h2>
+        <p class="text-sm text-gray-500 mb-10">
+          Revise los datos antes de finalizar el acuerdo.
+        </p>
 
-          <!-- Si subió un archivo -->
-          <div v-if="selectedOption === 'upload'" class="flex flex-col items-center space-y-6">
-            <h3 class="text-md font-semibold text-gray-700 mb-2">📎 Subir archivo del acuerdo</h3>
+        <!-- Si subió un archivo -->
+        <div v-if="selectedOption === 'upload'" class="flex flex-col items-center space-y-6">
+          <h3 class="text-md font-semibold text-gray-700 mb-2">📎 Subir archivo del acuerdo</h3>
 
-            <!-- Campo para subir archivo -->
-            <div
-              class="w-full md:w-3/4 lg:w-2/3 bg-gray-50 border-2 border-dashed border-gray-300 p-8 rounded-xl hover:border-blue-400 transition"
-            >
-              <input
-                type="file"
-                accept="application/pdf,image/png"
-                @change="manejarArchivo"
-                class="block w-full text-sm text-gray-600 cursor-pointer"
-              />
+          <!-- Campo para subir archivo -->
+          <div
+            class="w-full md:w-3/4 lg:w-2/3 bg-gray-50 border-2 border-dashed border-gray-300 p-8 rounded-xl hover:border-blue-400 transition"
+          >
+            <input
+              type="file"
+              accept="application/pdf,image/png"
+              @change="manejarArchivo"
+              class="block w-full text-sm text-gray-600 cursor-pointer"
+            />
 
-              <!-- Vista previa -->
-              <div v-if="filePreview" class="mt-6">
-                <h4 class="font-medium text-gray-700 mb-3">Vista previa:</h4>
+            <!-- Vista previa -->
+            <div v-if="filePreview" class="mt-6">
+              <h4 class="font-medium text-gray-700 mb-3">Vista previa:</h4>
 
-                <div v-if="fileType === 'application/pdf'">
-                  <iframe
-                    :src="filePreview"
-                    class="w-full h-[600px] rounded-lg border"
-                    title="Vista previa del PDF"
-                  ></iframe>
-                </div>
+              <div v-if="fileType === 'application/pdf'">
+                <iframe
+                  :src="filePreview"
+                  class="w-full h-[600px] rounded-lg border"
+                  title="Vista previa del PDF"
+                ></iframe>
+              </div>
 
-                <div v-else-if="fileType === 'image/png'">
-                  <img
-                    :src="filePreview"
-                    alt="Vista previa del acuerdo"
-                    class="mx-auto max-h-[600px] rounded-lg shadow-md"
-                  />
-                </div>
+              <div v-else-if="fileType === 'image/png'">
+                <img
+                  :src="filePreview"
+                  alt="Vista previa del acuerdo"
+                  class="mx-auto max-h-[600px] rounded-lg shadow-md"
+                />
               </div>
             </div>
-
-            <!-- Ver detalles -->
-            <button
-              type="button"
-              @click="mostrarModal = true"
-              class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
-            >
-              Ver detalles del acuerdo
-            </button>
           </div>
 
-          <!-- Si eligió generar PDF -->
-          <div v-else-if="form.tipoSeleccion === 'pdf'" class="flex flex-col items-center space-y-6">
-            <h3 class="text-md font-semibold text-gray-700 mb-2">📝 Acuerdo generado</h3>
+          <!-- NUEVO BLOQUE: Confirmación de validación -->
+          <div class="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-6 w-full md:w-3/4 lg:w-2/3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <label class="flex items-center gap-3 text-gray-700">
+                <input
+                  type="checkbox"
+                  v-model="datosValidados"
+                  class="w-5 h-5 accent-pink-600"
+                />
+                <span class="text-sm sm:text-base">
+                  Confirmo que los datos fueron validados y capturados correctamente.
+                </span>
+              </label>
 
-            <!-- Botón para generar el PDF real -->
-            <button
-              type="button"
-              @click="generarPDFReal"
-              class="bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-600 transition"
-            >
-              🧾 Generar PDF del acuerdo
-            </button>
-
-            <!-- Vista previa del PDF generado -->
-            <div v-if="pdfRealUrl" class="w-full md:w-3/4 lg:w-2/3 mt-6 bg-gray-100 p-4 rounded-lg shadow-inner">
-              <iframe
-                :src="pdfRealUrl"
-                class="w-full h-[600px] rounded-lg border"
-                title="PDF del acuerdo generado"
-              ></iframe>
-
-              <a
-                :href="pdfRealUrl"
-                download="acuerdo.pdf"
-                class="inline-block mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Descargar PDF
-              </a>
+              <!-- Enlace de validación (si no marca la casilla) -->
+              <div v-if="!datosValidados" class="text-sm text-pink-600 underline cursor-pointer hover:text-pink-700" @click="irAValidar">
+                🔍 Validar datos
+              </div>
             </div>
-
-            <!-- Ver detalles -->
-            <button
-              type="button"
-              @click="mostrarModal = true"
-              class="mt-4 bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition"
-            >
-              Ver detalles del acuerdo
-            </button>
           </div>
 
-          <!-- Botones navegación -->
-          <div class="flex justify-center mt-10 gap-6">
-            <button
-              type="button"
-              @click="prevStep"
-              class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:border-blue-400 hover:text-blue-600 transition"
-            >
-              Anterior
-            </button>
+          <!-- Ver detalles -->
+          <button
+            type="button"
+            @click="mostrarModal = true"
+            class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
+          >
+            Ver detalles del acuerdo
+          </button>
+        </div>
 
-            <!-- Botón final dinámico -->
-            <button
-              type="button"
-              @click="finalizarAcuerdo"
-              class="bg-gradient-to-r from-yellow-400 via-pink-600 to-sky-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:scale-[1.03] transition-transform"
+        <!-- Si eligió generar PDF -->
+        <div v-else-if="form.tipoSeleccion === 'pdf'" class="flex flex-col items-center space-y-6">
+          <h3 class="text-md font-semibold text-gray-700 mb-2">📝 Acuerdo generado</h3>
+          <button
+            type="button"
+            @click="generarPDFReal"
+            class="bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-600 transition"
+          >
+            🧾 Generar PDF del acuerdo
+          </button>
+
+          <div v-if="pdfRealUrl" class="w-full md:w-3/4 lg:w-2/3 mt-6 bg-gray-100 p-4 rounded-lg shadow-inner">
+            <iframe
+              :src="pdfRealUrl"
+              class="w-full h-[600px] rounded-lg border"
+              title="PDF del acuerdo generado"
+            ></iframe>
+
+            <a
+              :href="pdfRealUrl"
+              download="acuerdo.pdf"
+              class="inline-block mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
-              {{ form.tipoSeleccion === 'upload' ? 'Subir' : 'Generar' }}
-            </button>
+              Descargar PDF
+            </a>
           </div>
+
+          <button
+            type="button"
+            @click="mostrarModal = true"
+            class="mt-4 bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition"
+          >
+            Ver detalles del acuerdo
+          </button>
+        </div>
+
+        <!-- Botones navegación -->
+        <div class="flex justify-center mt-10 gap-6">
+          <button
+            type="button"
+            @click="prevStep"
+            class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:border-blue-400 hover:text-blue-600 transition"
+          >
+            Anterior
+          </button>
+
+          <!-- Botón final dinámico -->
+          <button
+            type="button"
+            @click="finalizarAcuerdo"
+            :disabled="selectedOption === 'upload' && !datosValidados"
+            class="bg-gradient-to-r from-yellow-400 via-pink-600 to-sky-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:scale-[1.03] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ form.tipoSeleccion === 'upload' ? 'Subir' : 'Generar' }}
+          </button>
+        </div>
 
           <!-- Modal detalles -->
           <transition name="fade">
@@ -1302,6 +1320,14 @@ const busquedaHotel = ref('')
 const filtroGerente = ref('')
 const filtroMarket = ref('')
 const filtroDestino = ref('')
+const datosValidados = ref(false)
+
+const irAValidar = () => {
+  datosValidados.value = false
+  step.value = 2
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 
 const listaGerentes = [
   'Laura Gómez',
