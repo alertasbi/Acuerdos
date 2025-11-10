@@ -15,7 +15,7 @@ def generar_pdf_detalle():
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
                             rightMargin=20, leftMargin=20,
-                            topMargin=25, bottomMargin=25)
+                            topMargin=20, bottomMargin=20)
     styles = getSampleStyleSheet()
     elements = []
 
@@ -23,41 +23,39 @@ def generar_pdf_detalle():
     gray = colors.HexColor("#D8D9DB")
     darkgray = colors.HexColor("#4B5563")
     pink = colors.HexColor("#ED1556")
-    title = ParagraphStyle("title", parent=styles["Heading2"], fontSize=14, textColor=darkgray, alignment=1)
-    subtitle = ParagraphStyle("subtitle", parent=styles["Normal"], fontSize=10, textColor=darkgray, alignment=1)
-    label = ParagraphStyle("label", parent=styles["Normal"], fontSize=8, textColor=darkgray)
-    small = ParagraphStyle("small", parent=styles["Normal"], fontSize=7, textColor=darkgray)
+    title = ParagraphStyle("title", parent=styles["Heading2"], fontSize=12, textColor=darkgray, alignment=1)
+    subtitle = ParagraphStyle("subtitle", parent=styles["Normal"], fontSize=8, textColor=darkgray, alignment=1)
+    label = ParagraphStyle("label", parent=styles["Normal"], fontSize=6, textColor=darkgray)
+    small = ParagraphStyle("small", parent=styles["Normal"], fontSize=5, textColor=darkgray)
 
     # ======== LOGO Y TÍTULO ========
     logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "Logonew_smart2.png")
     if os.path.exists(logo_path):
         # 🔹 Logo más pequeño pero más alargado (espaciado entre letras)
-        logo = Image(logo_path, width=60 * mm, height=7 * mm)
+        logo = Image(logo_path, width=55 * mm, height=6 * mm)
     else:
         logo = Paragraph(" ", styles["Normal"])
 
 
     # --- Envolvemos el logo en una tabla angosta (para alinearlo totalmente a la izquierda) ---
-    logo_table = Table([[logo]], colWidths=[65 * mm])
+    logo_table = Table([[logo]], colWidths=[60 * mm])
     logo_table.hAlign = "LEFT"  # 👈 esto es la clave
     logo_table.setStyle(TableStyle([
         ("ALIGN", (0, 0), (-1, -1), "LEFT"),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-        ("TOPPADDING", (0, 0), (-1, -1), 0),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
     elements.append(logo_table)
-    elements.append(Spacer(1, 6))
+    elements.append(Spacer(0, 0))
 
     # Título centrado debajo del logo
     elements.append(Paragraph("<b>ORDEN DE PUBLICIDAD</b>", title))
-    elements.append(Spacer(1, 4))
+    #elements.append(Spacer(1, 2))
 
         # ======== BLOQUE 1: INFORMACIÓN DEL CLIENTE ========
     elements.append(Paragraph("INFORMACIÓN DEL CLIENTE", subtitle))
-    elements.append(Spacer(1, 2))
+    #elements.append(Spacer(1, 0))
 
     # Línea rosa debajo del subtítulo
     from reportlab.lib.units import inch
@@ -67,7 +65,7 @@ def generar_pdf_detalle():
         ("BACKGROUND", (0, 0), (-1, -1), pink)
     ]))
     elements.append(line)
-    elements.append(Spacer(1, 6))
+    #elements.append(Spacer(1, 6))
 
     # === Tabla izquierda ===
     # === Tabla izquierda (cliente) ===
@@ -77,18 +75,13 @@ def generar_pdf_detalle():
         ["Dirección Fiscal:", ""],
         ["C.P.:", ""],
     ]
-    t_cliente_izq = Table(data_cliente_izq, colWidths=[80, 220])
+    t_cliente_izq = Table(data_cliente_izq, colWidths=[80, 210])
     t_cliente_izq.setStyle(TableStyle([
-        ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.black),  # solo líneas inferiores
-        ("BACKGROUND", (0, 0), (0, -1), gray),               # fondo gris solo primera columna
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        ("TOPPADDING", (0, 0), (-1, -1), 2),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.black),
+        ("BACKGROUND", (0, 0), (0, -1), gray),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
 
     # === Tabla derecha (Provider Account) ===
@@ -100,54 +93,37 @@ def generar_pdf_detalle():
     ]
     t_cliente_der = Table(data_cliente_der, colWidths=[90, 120])
     t_cliente_der.setStyle(TableStyle([
-        ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.black),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.black),
         ("BACKGROUND", (0, 0), (0, -1), gray),
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        ("TOPPADDING", (0, 0), (-1, -1), 2),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
 
     # === Contenedor general (alineación igual que la tabla de contactos) ===
-    tablas_cliente = Table([[t_cliente_izq, "", t_cliente_der]], colWidths=[300, 20, 210])
-    tablas_cliente.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-    ]))
+    tablas_cliente = Table([[t_cliente_izq, "", t_cliente_der]], colWidths=[290, 10, 200])
     elements.append(tablas_cliente)
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 3))
 
 
         # ======== BLOQUE 2: CONTACTOS DEL CLIENTE ========
     elements.append(Paragraph("CONTACTOS DEL CLIENTE", subtitle))
-    elements.append(Spacer(1, 2))
+    elements.append(Table([[" "]], colWidths=[520], rowHeights=[0.8],
+                          style=[("BACKGROUND", (0, 0), (-1, -1), pink)]))
 
     # Línea rosa debajo del subtítulo
     from reportlab.lib.units import inch
-    line_contactos = Table([[" "]], colWidths=[7.6 * inch], rowHeights=[0.8])
-    line_contactos.hAlign = "CENTER"
-    line_contactos.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), pink)
-    ]))
-    elements.append(line_contactos)
-    elements.append(Spacer(1, 6))
+
 
     # Titulos fuera de las tablas
     titulos_contacto = Table([
         [Paragraph("<b>Contacto Contabilidad</b>", subtitle), "", Paragraph("<b>Contacto Marketing</b>", subtitle)]
     ], colWidths=[250, 20, 250])
     titulos_contacto.setStyle(TableStyle([
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 0)
+        ("ALIGN", (0, 0), (-1, -1), "CENTER")
     ]))
     elements.append(titulos_contacto)
-    elements.append(Spacer(1, 4))
+
 
     # === Tabla izquierda (Contabilidad) ===
     data_contabilidad = [
@@ -158,12 +134,11 @@ def generar_pdf_detalle():
     ]
     t_contabilidad = Table(data_contabilidad, colWidths=[80, 170])
     t_contabilidad.setStyle(TableStyle([
-        ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.black),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.black),
         ("BACKGROUND", (0, 0), (0, -1), gray),
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
 
     # === Tabla derecha (Marketing) ===
@@ -175,12 +150,11 @@ def generar_pdf_detalle():
     ]
     t_marketing = Table(data_marketing, colWidths=[80, 170])
     t_marketing.setStyle(TableStyle([
-        ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.black),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.black),
         ("BACKGROUND", (0, 0), (0, -1), gray),
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
 
     # === Contenedor con separación entre ambas ===
@@ -191,17 +165,17 @@ def generar_pdf_detalle():
         ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ]))
     elements.append(tablas_contactos)
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 3))
 
 
     # ======== BLOQUE 3: DETALLES PUBLICIDAD CONTRATADA / DESGLOSE ========
 
-    # Contenedor de los títulos (lado a lado)
+    # --- Titulos individuales alineados arriba de cada tabla ---
     titulos_detalle = Table([
         [
-            Paragraph("<b>DETALLES PUBLICIDAD CONTRATADA</b>", subtitle),
+            Paragraph("DETALLES PUBLICIDAD CONTRATADA", subtitle),
             "",
-            Paragraph("<b>DESGLOSE DE PUBLICIDAD CONTRATADA</b>", subtitle)
+            Paragraph("DESGLOSE DE PUBLICIDAD CONTRATADA", subtitle)
         ]
     ], colWidths=[250, 20, 250])
     titulos_detalle.setStyle(TableStyle([
@@ -210,44 +184,34 @@ def generar_pdf_detalle():
     ]))
     elements.append(titulos_detalle)
 
-    # Líneas rosas bajo los títulos (más delgadas, idénticas a las superiores)
-    from reportlab.lib.units import inch
-    lineas = Table([
-        [
-            "",  # espacio del lado izquierdo
-            "",  # separador
-            ""   # espacio del lado derecho
-        ]
-    ], colWidths=[250, 20, 250], rowHeights=[0.1])  # línea súper fina
+    # --- Línea rosa debajo de los títulos ---
+    lineas = Table(
+        [["", "", ""]],
+        colWidths=[250, 20, 250],
+        rowHeights=[0.8]
+    )
     lineas.setStyle(TableStyle([
-        ("LINEBELOW", (0, 0), (-1, -1), 0.8, pink),   # línea rosa izquierda
-        ("LINEBELOW", (0, 0), (-1, -1), 0.8, pink),   # línea rosa derecha
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 0),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ("LINEBELOW", (0, 0), (0, 0), 0.8, pink),  # línea izquierda
+        ("LINEBELOW", (2, 0), (2, 0), 0.8, pink),  # línea derecha
     ]))
     elements.append(lineas)
-    elements.append(Spacer(1, 6))
-
-
-
+    elements.append(Spacer(1, 2))
 
     # === Tabla izquierda: DETALLES PUBLICIDAD CONTRATADA ===
     data_detalles = [
         ["Área:", ""],
         ["Moneda:", ""],
         ["Fechas del Plan:", ""],
-        ["Número de Facturas:", ""],
+        ["Núm. Facturas:", ""],
         ["Fechas de Facturación:", ""],
     ]
-    t_detalles = Table(data_detalles, colWidths=[90, 160])
+    t_detalles = Table(data_detalles, colWidths=[80, 170])
     t_detalles.setStyle(TableStyle([
-        ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.black),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.black),
         ("BACKGROUND", (0, 0), (0, -1), gray),
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
 
     # === Tabla derecha: DESGLOSE DE PUBLICIDAD CONTRATADA ===
@@ -257,18 +221,17 @@ def generar_pdf_detalle():
         ["IVA 19%:", ""],
         ["TOTAL COP - Peso colombiano:", ""],
     ]
-    t_desglose = Table(data_desglose, colWidths=[170, 80])
+    t_desglose = Table(data_desglose, colWidths=[150, 90])
     t_desglose.setStyle(TableStyle([
-        ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.black),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.black),
         ("BACKGROUND", (0, 1), (0, -1), gray),
-        ("BACKGROUND", (0, 0), (0, 0), colors.white),  # primera fila sin fondo gris
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("BACKGROUND", (0, 0), (0, 0), colors.white),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
 
-    # === Contenedor con separación entre ambas ===
+    # === Contenedor general (alineado como los bloques anteriores) ===
     tablas_detalle = Table([[t_detalles, "", t_desglose]], colWidths=[250, 20, 250])
     tablas_detalle.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -276,18 +239,20 @@ def generar_pdf_detalle():
         ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ]))
     elements.append(tablas_detalle)
-    elements.append(Spacer(1, 12))
+    #elements.append(Spacer(1, 3))
+
+
 
 
     # ======== BLOQUE 4: OBSERVACIONES / COMENTARIOS ========
-    elements.append(Spacer(1, 8))
+    #elements.append(Spacer(1, 8))
 
     # Contenedor del bloque completo (alineado con las tablas)
     bloque_obs = []
 
     # Título
     bloque_obs.append(Paragraph("<b>OBSERVACIONES / COMENTARIOS</b>", subtitle))
-    bloque_obs.append(Spacer(1, 2))
+    #bloque_obs.append(Spacer(1, 2))
 
     # Línea rosa — mismo ancho y posición que las tablas
     linea_obs = Table([[" "]], colWidths=[270], rowHeights=[0.8])
@@ -319,13 +284,13 @@ def generar_pdf_detalle():
         ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ]))
     elements.append(bloque_obs_wrap)
-    elements.append(Spacer(1, 12))
+    #elements.append(Spacer(1, 12))
 
 
 
 
         # ======== BLOQUE 5: FORMA DE PAGO ========
-    elements.append(Spacer(1, 8))
+    #elements.append(Spacer(1, 8))
 
     # Contenedor del bloque completo alineado igual que las tablas
     bloque_pago = []
@@ -377,13 +342,13 @@ def generar_pdf_detalle():
         ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ])) 
     elements.append(bloque_pago_wrap)
-    elements.append(Spacer(1, 12))
+    #elements.append(Spacer(1, 12))
 
 
     # ======== BLOQUE 6: INFORMACIÓN BANCARIA ========
-    elements.append(Spacer(1, 10))
+    #elements.append(Spacer(1, 10))
     elements.append(Paragraph("<b>INFORMACIÓN BANCARIA</b>", subtitle))
-    elements.append(Spacer(1, 2))
+    #elements.append(Spacer(1, 2))
 
     # Línea rosa delgada (mismo ancho que el resto del documento)
     from reportlab.lib.units import inch
@@ -393,7 +358,7 @@ def generar_pdf_detalle():
         ("BACKGROUND", (0, 0), (-1, -1), pink),
     ]))
     elements.append(linea_bancos)
-    elements.append(Spacer(1, 6))
+    #elements.append(Spacer(1, 6))
 
     # Base de logos
     base_assets = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets")
@@ -456,12 +421,12 @@ def generar_pdf_detalle():
         ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ]))
     elements.append(bloque_bancos_wrap)
-    elements.append(Spacer(1, 10))
+    #elements.append(Spacer(1, 10))
 
 
 
     # ======== BLOQUE 7: FIRMAS ========
-    elements.append(Spacer(1, 20))
+    #elements.append(Spacer(1, 20))
 
     # Encabezados principales
     titulos_firmas = Table(
