@@ -41,7 +41,7 @@
     <!-- Botón cerrar sesión -->
     <button
       @click="onLogout"
-      class="bg-gradient-to-r from-yellow-400 via-pink-600 via-purple-700 to-sky-500
+      class="bg-gradient-to-r from-yellow-400 via-pink-600 to-sky-500
              text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:opacity-90 transition"
     >
       Cerrar sesión

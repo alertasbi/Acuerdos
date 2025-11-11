@@ -115,14 +115,14 @@
                 class="text-blue-600 font-medium hover:underline"
                 @click.stop="abrirHoteles(item)"
               >
-                Ver Hoteles
+                Hoteles
               </a>
               <a
                 href="#"
                 class="text-blue-600 font-medium hover:underline"
                 @click.stop
               >
-                Ver Archivo
+                Archivo
               </a>
             </div>
           </div>
@@ -184,14 +184,14 @@
                     class="text-blue-500 hover:underline text-sm whitespace-nowrap"
                     @click.stop="abrirHoteles(item)"
                   >
-                    Ver Hoteles
+                    Hoteles
                   </a>
                   <a
                     href="#"
                     class="text-blue-500 hover:underline text-sm whitespace-nowrap"
                     @click.stop
                   >
-                    Ver Archivo
+                    Archivo
                   </a>
                   <button
                     class="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 whitespace-nowrap"

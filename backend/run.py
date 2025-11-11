@@ -6,15 +6,27 @@ from dotenv import load_dotenv
 # Cargar variables del archivo .env
 load_dotenv()
 
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
 
-# Habilitar CORS para el frontend
-CORS(app, resources={r"/api/*": {"origins": os.getenv("ALLOWED_ORIGINS","*")}})
+    # CORS
+    CORS(app, resources={r"/api/*": {"origins": os.getenv("ALLOWED_ORIGINS", "*")}})
 
-# Ruta de prueba (para verificar que el backend funciona)
-@app.get("/api/health")
-def health():
-    return {"status": "ok"}
+    # Healthcheck
+    @app.get("/api/health")
+    def health():
+        return {"status": "ok"}
+
+    # Registrar blueprints
+    from routes.pdf_routes import pdf_bp
+    app.register_blueprint(pdf_bp, url_prefix="/api/pdf")
+
+    from routes.pdf_template import pdf_template_bp
+    app.register_blueprint(pdf_template_bp, url_prefix="/api/pdf")
+
+
+    return app
 
 if __name__ == "__main__":
-    app.run(debug=True, port=int(os.getenv("FLASK_RUN_PORT", 5000)))
+    app = create_app()
+    app.run(debug=True, port=int(os.getenv("FLASK_RUN_PORT", 5001)))
