@@ -10,7 +10,7 @@ from datetime import datetime
 
 pdf_template_bp = Blueprint("pdf_template", __name__)
 
-@pdf_template_bp.get("/acuerdo-detalle")
+@pdf_template_bp.post("/acuerdo-detalle")
 def generar_pdf_detalle():
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
