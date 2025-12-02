@@ -24,6 +24,11 @@ def create_app():
     from routes.pdf_template import pdf_template_bp
     app.register_blueprint(pdf_template_bp, url_prefix="/api/pdf")
 
+    from routes.Login.login import login_bp
+    app.register_blueprint(login_bp, url_prefix="/api")
+
+    from routes.Login.login import permisos_bp
+    app.register_blueprint(permisos_bp, url_prefix="/api")
 
     return app
 
