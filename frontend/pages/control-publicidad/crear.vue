@@ -1437,14 +1437,32 @@ const pdfRealUrl = ref<string | null>(null)
  * Genera el PDF principal (acuerdo final)
  */
 const generarPDFReal = async () => {
-  const resp = await fetch('http://localhost:5001/api/pdf/acuerdo', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ ...form, hoteles: hotelesSeleccionados.value })
-  })
-  const blob = await resp.blob()
-  pdfRealUrl.value = URL.createObjectURL(blob)
-}
+  try {
+    const resp = await fetch('http://localhost:5001/api/pdf/acuerdo-detalle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...form,
+        hoteles: hotelesSeleccionados.value
+      })
+    });
+
+    if (!resp.ok) {
+      throw new Error("Error generando PDF");
+    }
+
+    const blob = await resp.blob();
+    pdfRealUrl.value = URL.createObjectURL(blob);
+
+    mensajeExito.value = "📄 PDF generado correctamente.";
+    setTimeout(() => (mensajeExito.value = ""), 2500);
+  } catch (error) {
+    console.error("❌ Error generando PDF:", error);
+    mensajeExito.value = "❌ No se pudo generar el PDF.";
+    setTimeout(() => (mensajeExito.value = ""), 2500);
+  }
+};
+
 
 
 /**

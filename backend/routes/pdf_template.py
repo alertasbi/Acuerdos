@@ -10,7 +10,7 @@ from datetime import datetime
 
 pdf_template_bp = Blueprint("pdf_template", __name__)
 
-@pdf_template_bp.get("/acuerdo-detalle")
+@pdf_template_bp.post("/acuerdo-detalle")
 def generar_pdf_detalle():
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
@@ -388,6 +388,13 @@ def generar_pdf_detalle():
                 "Banorte - Cuenta en Dólares Americanos: Cuenta 0642079549 Clave 072691006420795491 SWIFT: MENOMXMTXXX",
             ],
         },
+                {
+            "logo": os.path.join(base_assets, "bancolombia_logo.png"),
+            "cuentas": [
+                "Bancolombia - Cuenta en Pesos Colombianos  :  Cuenta 82543776725   Corriente",
+                "Bancolombia - Cuenta en Dólares Americano :    Cuenta 82543776725   Corriente  SWIFT: COLOCOBM",
+            ],
+        },
     ]
 
     # 🔹 Estilo sin interlineado (dentro del mismo banco)
@@ -399,21 +406,26 @@ def generar_pdf_detalle():
 
     # Contenedor general para alinear el bloque completo a la izquierda
     bloque_bancos = []
-
     for banco in bancos:
+        # --- Ajustar tamaño del logo según el banco ---
         if os.path.exists(banco["logo"]):
-            logo = Image(banco["logo"], width=5 * mm, height=5 * mm)
+            if "bancolombia" in banco["logo"].lower():
+                # Logo más ancho (Bancolombia)
+                logo = Image(banco["logo"], width=20 * mm, height=6 * mm)
+            else:
+                # Logos normales
+                logo = Image(banco["logo"], width=7 * mm, height=7 * mm)
         else:
             logo = Paragraph(" ", styles["Normal"])
 
-        # 🔹 Crear párrafo sin interlineado interno
+        # Crear párrafo sin interlineado
         cuentas_texto = "<br/>".join(banco["cuentas"])
         texto = Paragraph(cuentas_texto, sin_interlineado_banco)
 
-        # 🔹 Armar la fila con logo + texto
+        # Fila tabla
         fila = Table(
             [[logo, texto]],
-            colWidths=[7 * mm, 400]
+            colWidths=[22 * mm, 380]   # ← Aumentamos espacio para logo de Bancolombia
         )
         fila.setStyle(TableStyle([
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
@@ -424,7 +436,8 @@ def generar_pdf_detalle():
         ]))
 
         bloque_bancos.append(fila)
-        bloque_bancos.append(Spacer(1, 3))  # 🔹 espacio solo entre bancos (no dentro del mismo)
+        bloque_bancos.append(Spacer(1, 3))
+
 
     # 🔹 Envolver el bloque con el mismo margen que las demás secciones
     bloque_bancos_wrap = Table([[bloque_bancos]], colWidths=[440])
