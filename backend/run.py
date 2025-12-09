@@ -30,6 +30,11 @@ def create_app():
     from routes.Login.login import permisos_bp
     app.register_blueprint(permisos_bp, url_prefix="/api")
 
+    from routes.ControlPublicidad.acuerdos import acuerdos_bp
+    app.register_blueprint(acuerdos_bp, url_prefix="/api")
+
+    from routes.ControlPublicidad.acuerdos import acuerdosHoteles_bp
+    app.register_blueprint(acuerdosHoteles_bp, url_prefix="/api")
     return app
 
 if __name__ == "__main__":
