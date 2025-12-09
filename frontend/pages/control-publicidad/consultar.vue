@@ -56,12 +56,6 @@
           class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <input
-          v-model="filtros.id"
-          type="text"
-          placeholder="ID proveedor"
-          class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        <input
           v-model="filtros.proveedor"
           type="text"
           placeholder="Proveedor"
@@ -69,7 +63,7 @@
         />
       </div>
 
-      <div class="flex justify-end mb-8">
+      <div class="flex justify-start mb-6 ml-1">
         <button
           @click="limpiarFiltros"
           class="text-sm text-gray-600 hover:text-blue-600 underline"
@@ -77,6 +71,7 @@
           Limpiar filtros
         </button>
       </div>
+
 
       <!-- ✅ Vista TARJETAS -->
       <div
@@ -215,6 +210,19 @@
 
     <Footer />
 
+    <!-- 🌀 LOADING OVERLAY -->
+    <div
+      v-if="cargando"
+      class="fixed inset-0 bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center z-[9999]"
+    >
+      <!-- Spinner -->
+      <div class="loader mb-4"></div>
+
+      <!-- Texto -->
+      <p class="text-gray-700 font-medium">Cargando información...</p>
+    </div>
+
+
     <!-- 🟣 Modal detalle -->
     <div
       v-if="detalleSeleccionado"
@@ -285,10 +293,11 @@
       >
         <button
           class="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
-          @click="modalHoteles = false"
+          @click="cerrarModalHoteles()"
         >
           ✕
         </button>
+
 
         <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">
           Hoteles del Acuerdo
@@ -337,6 +346,14 @@
 <script setup lang="ts">
 import Header from '~/components/Layout/Header.vue'
 import Footer from '~/components/Layout/FooterBar.vue'
+import { useUserStore } from '~/stores/user'
+
+const cargando = ref(true)
+const acuerdos = ref<any[]>([])
+const userStore = useUserStore()
+const scrollPos = ref(0)
+
+
 
 const vista = ref<'tarjetas' | 'tabla'>('tarjetas')
 const detalleSeleccionado = ref<Record<string, any> | null>(null)
@@ -358,14 +375,58 @@ const limpiarFiltros = () => {
   Object.assign(filtros, { anio: '', tipo: '', gerente: '', id: '', proveedor: '' })
 }
 
-const abrirHoteles = (item: any) => {
-  hotelesSeleccionados.value = [
-    { id: 'HTL001', nombre: 'Occidental Tucancun' },
-    { id: 'HTL002', nombre: 'Grand Oasis Cancun' },
-    { id: 'HTL003', nombre: 'Emporio Cancun' },
-  ]
+const abrirHoteles = async (item: any) => {
+  // Guardar posición actual
+  scrollPos.value = window.scrollY
+
+  // Bloquear scroll del body
+  document.body.style.position = "fixed"
+  document.body.style.top = `-${scrollPos.value}px`
+  document.body.style.left = "0"
+  document.body.style.right = "0"
+  document.body.style.width = "100%"
+
   modalHoteles.value = true
+  hotelesSeleccionados.value = []
+
+  const controlPublicidadId = item.Registro
+  
+  try {
+    cargando.value = true
+
+    const response = await $fetch("http://127.0.0.1:5000/api/acuerdosHoteles", {
+      method: "GET",
+      params: {
+        controlPublicidadId,
+        opcion: 2,
+        userId: userStore.idUser
+      }
+    })
+
+    hotelesSeleccionados.value = response.map((h: any) => ({
+      id: h.ID,
+      nombre: h.Nombre
+    }))
+  } finally {
+    cargando.value = false
+  }
 }
+
+const cerrarModalHoteles = () => {
+  modalHoteles.value = false
+
+  // Restaurar scroll del body
+  document.body.style.position = ""
+  document.body.style.top = ""
+  document.body.style.left = ""
+  document.body.style.right = ""
+  document.body.style.width = ""
+
+  // Volver exactamente al punto donde estaba el usuario
+  window.scrollTo(0, scrollPos.value)
+}
+
+
 
 const abrirDetalle = (item: any) => (detalleSeleccionado.value = item)
 const abrirConfirmacion = (item: any) => {
@@ -394,53 +455,38 @@ const detalleFiltrado = (item: any) => {
   return filtrado
 }
 
-const acuerdos = ref([
-  {
-    Registro: '1682', Equipo: 'RCP México', Año: '2025', Mes: 'Septiembre', TipoAcuerdo: 'Paquete Fijo',
-    Gerente: 'Christians Beatriz Ortiz Caballero', Proveedor: '1682/Occidental Tucancun/', ID: '100038/',
-    Moneda: 'USD', PrecioSinIVA: '$7,500.00', FolioAcuerdo: '16431', MesesContratados: 1,
-    FechaInicio: '01/09/2025', FechaFin: '30/09/2025', FechaVenta: '29/09/2025', RFC: 'PTU0608299B4',
-    FormaPago: 'Descuento', Comentarios: '*Paquete Elite Aniversario PT / Pago en 2 Facturas',
-    Firmado: 'Sí', ControlAcuerdos: 'Tucancun-firmada-2.pdf',
-    proveedor: 'Occidental Tucancun', tipo: 'Paquete Fijo', fecha: '2025-09-01',
-    gerente: 'Christians Ortiz', equipo: 'RCP México', moneda: 'USD', monto: '7,500.00',
-  },
-  {
-    Registro: '1720', Equipo: 'Marketing Caribe', Año: '2025', Mes: 'Agosto', TipoAcuerdo: 'Cooperativo Anual',
-    Gerente: 'María González', Proveedor: 'Hotel Xcaret México', ID: '200412', Moneda: 'USD',
-    PrecioSinIVA: '$12,000.00', FolioAcuerdo: '17895', MesesContratados: 12,
-    FechaInicio: '01/01/2025', FechaFin: '31/12/2025', FechaVenta: '15/08/2025',
-    RFC: 'HXM0912278F5', FormaPago: 'Transferencia',
-    Comentarios: 'Cooperativo anual con pauta digital incluida', Firmado: 'Sí',
-    ControlAcuerdos: 'xcaret2025.pdf', proveedor: 'Hotel Xcaret México',
-    tipo: 'Cooperativo Anual', fecha: '2025-08-15', gerente: 'María González',
-    equipo: 'Marketing Caribe', moneda: 'USD', monto: '12,000.00',
-  },
-  {
-    Registro: '1755', Equipo: 'RCP Caribe', Año: '2025', Mes: 'Septiembre',
-    TipoAcuerdo: 'Paquete Variable', Gerente: 'Carlos Torres',
-    Proveedor: 'Grand Palladium Riviera Maya', ID: '200512', Moneda: 'MXN',
-    PrecioSinIVA: '$250,000.00', FolioAcuerdo: '18101', MesesContratados: 2,
-    FechaInicio: '01/09/2025', FechaFin: '31/10/2025', FechaVenta: '20/09/2025',
-    RFC: 'GPRM031219AB3', FormaPago: 'Descuento',
-    Comentarios: 'Campaña regional Caribe con 2 meses de exposición', Firmado: 'Pendiente',
-    ControlAcuerdos: 'palladium-campania.pdf', proveedor: 'Grand Palladium Riviera Maya',
-    tipo: 'Paquete Variable', fecha: '2025-09-20', gerente: 'Carlos Torres',
-    equipo: 'RCP Caribe', moneda: 'MXN', monto: '250,000.00',
-  },
-  {
-    Registro: '1790', Equipo: 'Digital LATAM', Año: '2025', Mes: 'Julio',
-    TipoAcuerdo: 'Publicidad Digital', Gerente: 'Ana López',
-    Proveedor: 'Barceló Maya Beach', ID: '200621', Moneda: 'USD',
-    PrecioSinIVA: '$5,000.00', FolioAcuerdo: '18290', MesesContratados: 1,
-    FechaInicio: '01/07/2025', FechaFin: '31/07/2025', FechaVenta: '30/07/2025',
-    RFC: 'BMB070102KD9', FormaPago: 'Pago Directo',
-    Comentarios: 'Campaña display en portales LATAM', Firmado: 'Sí',
-    ControlAcuerdos: 'barcelo-display.pdf', proveedor: 'Barceló Maya Beach',
-    tipo: 'Publicidad Digital', fecha: '2025-07-30', gerente: 'Ana López',
-    equipo: 'Digital LATAM', moneda: 'USD', monto: '5,000.00',
-  },
-])
+onMounted(async () => {
+  cargando.value = true   
+
+  try {
+    const response = await $fetch(`http://127.0.0.1:5000/api/acuerdos`, {
+      method: "GET",
+      params: { userId: userStore.idUser }
+    })
+
+    console.log("Acuerdos obtenidos:", response)
+
+    acuerdos.value = response.map((a: any) => ({
+      proveedor: a.Proveedor,
+      tipo: a.TipoAcuerdo,
+      fecha: a.FechaCobro || a.FechaVenta || "",
+      gerente: a.Gerente,
+      equipo: a.Equipo,
+      moneda: a.MonedaAcuerdo,
+      monto: a.PrecioSinIVA,
+      Registro: a.Registro,
+      ...a
+    }))
+  } catch (err) {
+    console.error("❌ Error cargando acuerdos:", err)
+  } finally {
+    cargando.value = false   // ✔ Oculta loading cuando termina
+  }
+})
+
+
+
+
 
 const acuerdosFiltrados = computed(() =>
   acuerdos.value.filter((item) => {
@@ -476,4 +522,18 @@ const acuerdosFiltrados = computed(() =>
 .group a {
   cursor: pointer;
 }
+.loader {
+  border: 6px solid #e5e7eb; /* gris claro */
+  border-top: 6px solid #3b82f6; /* azul */
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 </style>

@@ -34,7 +34,7 @@
             />
           </svg>
         </div>
-        <p class="font-semibold text-gray-700 text-base">Alan Cano</p>
+        <p class="font-semibold text-gray-700 text-base">{{ userStore.name }}</p>
       </div>
     </div>
 
@@ -51,6 +51,8 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useUserStore } from '~/stores/user'
+const userStore = useUserStore()
 const router = useRouter()
 const { logout } = useAuth()
 
@@ -58,4 +60,6 @@ const onLogout = () => {
   logout()
   router.push('/login')
 }
+
+
 </script>
