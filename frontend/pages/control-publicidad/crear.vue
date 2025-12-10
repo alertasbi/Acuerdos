@@ -1064,9 +1064,10 @@
 import Header from '~/components/Layout/Header.vue'
 import Footer from '~/components/Layout/FooterBar.vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '~/stores/user'
 
 const router = useRouter()
-
+const userStore = useUserStore()
 
 /* =====================================================
    🧩 VARIABLES GLOBALES / ESTADO PRINCIPAL
@@ -1438,12 +1439,13 @@ const pdfRealUrl = ref<string | null>(null)
  */
 const generarPDFReal = async () => {
   try {
-    const resp = await fetch('http://localhost:5001/api/pdf/acuerdo-detalle', {
+    const resp = await fetch('http://localhost:5000/api/pdf/acuerdo-detalle', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...form,
-        hoteles: hotelesSeleccionados.value
+        hoteles: hotelesSeleccionados.value,
+        usuarioNombre: userStore.name   // ← EL NOMBRE REAL
       })
     });
 

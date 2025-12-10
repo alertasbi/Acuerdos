@@ -1,4 +1,4 @@
-from flask import Blueprint, send_file
+from flask import Blueprint, send_file,request
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
@@ -12,6 +12,8 @@ pdf_template_bp = Blueprint("pdf_template", __name__)
 
 @pdf_template_bp.post("/acuerdo-detalle")
 def generar_pdf_detalle():
+    data = request.get_json() or {}
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
                             rightMargin=20, leftMargin=20,
@@ -39,7 +41,7 @@ def generar_pdf_detalle():
 
     # --- Envolvemos el logo en una tabla angosta (para alinearlo totalmente a la izquierda) ---
     logo_table = Table([[logo]], colWidths=[60 * mm])
-    logo_table.hAlign = "LEFT"  # 👈 esto es la clave
+    logo_table.hAlign = "LEFT"  #  esto es la clave
     logo_table.setStyle(TableStyle([
         ("ALIGN", (0, 0), (-1, -1), "LEFT"),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -127,10 +129,10 @@ def generar_pdf_detalle():
 
     # === Tabla izquierda (Contabilidad) ===
     data_contabilidad = [
-        ["Nombre:", ""],
-        ["Cargo:", ""],
-        ["E-mail:", ""],
-        ["Teléfono:", ""],
+        ["Nombre:", data.get("contabilidadNombre", "")],
+        ["Cargo:", data.get("contabilidadCargo", "")],
+        ["E-mail:", data.get("contabilidadEmail", "")],
+        ["Teléfono:", data.get("contabilidadTelefono", "")]
     ]
     t_contabilidad = Table(data_contabilidad, colWidths=[80, 170])
     t_contabilidad.setStyle(TableStyle([
@@ -141,12 +143,13 @@ def generar_pdf_detalle():
         ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
 
+
     # === Tabla derecha (Marketing) ===
     data_marketing = [
-        ["Nombre:", ""],
-        ["Cargo:", ""],
-        ["E-mail:", ""],
-        ["Teléfono:", ""],
+        ["Nombre:", data.get("marketingNombre", "")],
+        ["Cargo:", data.get("marketingCargo", "")],
+        ["E-mail:", data.get("marketingEmail", "")],
+        ["Teléfono:", data.get("marketingTelefono", "")]
     ]
     t_marketing = Table(data_marketing, colWidths=[80, 170])
     t_marketing.setStyle(TableStyle([
@@ -156,6 +159,7 @@ def generar_pdf_detalle():
         ("TOPPADDING", (0, 0), (-1, -1), 1),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
+
 
     # === Contenedor con separación entre ambas ===
     tablas_contactos = Table([[t_contabilidad, "", t_marketing]], colWidths=[250, 20, 250])
@@ -199,12 +203,13 @@ def generar_pdf_detalle():
 
     # === Tabla izquierda: DETALLES PUBLICIDAD CONTRATADA ===
     data_detalles = [
-        ["Área:", ""],
-        ["Moneda:", ""],
-        ["Fechas del Plan:", ""],
-        ["Núm. Facturas:", ""],
-        ["Fechas de Facturación:", ""],
+        ["Área:", data.get("equipo", "")],
+        ["Moneda:", data.get("moneda", "")],
+        ["Fechas del Plan:", f"{data.get('fechaInicio','')} - {data.get('fechaTermino','')}"],
+        ["Núm. Facturas:", data.get("numeroFactura", "")],
+        ["Fechas de Facturación:", data.get("fechaFacturacion", "")]
     ]
+
     t_detalles = Table(data_detalles, colWidths=[80, 170])
     t_detalles.setStyle(TableStyle([
         ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.black),
@@ -214,13 +219,34 @@ def generar_pdf_detalle():
         ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
 
+    precio = float(data.get("precioSinIVA", 0))
+    iva = float(data.get("iva", 0))
+    subtotal_iva = precio * (iva / 100)
+    total = precio + subtotal_iva
+
+    moneda = data.get("moneda", "")
+
+    nombres_moneda = {
+        "MXN": "Peso mexicano",
+        "USD": "Dólar estadounidense",
+        "EUR": "Euro",
+        "CAD": "Dólar canadiense",
+        "COP": "Peso colombiano"
+    }
+
+    nombre_m = nombres_moneda.get(moneda, moneda)
+    total_label = f"TOTAL {moneda} - {nombre_m}:"
+
+
+
     # === Tabla derecha: DESGLOSE DE PUBLICIDAD CONTRATADA ===
     data_desglose = [
-        ["Pauta Acciones Varias", ""],
-        ["Subtotal:", ""],
-        ["IVA 19%:", ""],
-        ["TOTAL COP - Peso colombiano:", ""],
+        ["Pauta Acciones Varias", f"{precio:,.2f}"],
+        ["Subtotal:", f"{precio:,.2f}"],
+        [f"IVA {iva}%:", f"{subtotal_iva:,.2f}"],
+        [total_label, f"{total:,.2f}"]
     ]
+
     t_desglose = Table(data_desglose, colWidths=[150, 90])
     t_desglose.setStyle(TableStyle([
         ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.black),
@@ -230,6 +256,7 @@ def generar_pdf_detalle():
         ("TOPPADDING", (0, 0), (-1, -1), 1),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
+
 
     # === Contenedor general (alineado como los bloques anteriores) ===
     tablas_detalle = Table([[t_detalles, "", t_desglose]], colWidths=[250, 20, 250])
@@ -265,25 +292,46 @@ def generar_pdf_detalle():
     bloque_obs.append(Spacer(1, 4))
 
     # Cuadro gris (mismo ancho que la línea y tablas)
+
+    comentarios_texto = data.get("comentarios", "") or ""  # ← lo que envía Nuxt
+
+    comentarios_paragraph = Paragraph(
+        comentarios_texto.replace("\n", "<br/>"),  # respetar saltos de línea
+        ParagraphStyle(
+            name="comentarios",
+            parent=small,
+            leading=8,
+            textColor=darkgray
+        )
+    )
+
     cuadro_obs = Table(
-        [[""]],  # sin puntos
-        colWidths=[270],
-        rowHeights=[50]  # altura del recuadro gris
+        [[comentarios_paragraph]],
+        colWidths=[270]
     )
     cuadro_obs.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), gray),
         ("BOX", (0, 0), (-1, -1), 0.5, gray),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
     ]))
+
     bloque_obs.append(cuadro_obs)
 
-    # Envolvemos todo para alinearlo perfectamente con las tablas
+    # Envolver todo para alinearlo como los bloques anteriores
     bloque_obs_wrap = Table([[bloque_obs]], colWidths=[270])
     bloque_obs_wrap.hAlign = "LEFT"
     bloque_obs_wrap.setStyle(TableStyle([
-        ("LEFTPADDING", (0, 0), (-1, -1), 15),  # ⬅️ margen ajustado exacto a las tablas
+        ("LEFTPADDING", (0, 0), (-1, -1), 15),
         ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ]))
+
+    # AGREGAR AQUI -> sin esto no aparece
     elements.append(bloque_obs_wrap)
+
+
     #elements.append(Spacer(1, 12))
 
 
@@ -293,62 +341,73 @@ def generar_pdf_detalle():
     #elements.append(Spacer(1, 8))
 
     # Contenedor del bloque completo alineado igual que las tablas
+# ======== BLOQUE 5: FORMA DE PAGO ========
     bloque_pago = []
 
     # Título
     bloque_pago.append(Paragraph("<b>FORMA DE PAGO</b>", subtitle))
-    #bloque_pago.append(Spacer(1, 2))
 
-    # Línea rosa delgada (alineada igual que las tablas)
     linea_pago = Table([[" "]], colWidths=[270], rowHeights=[0.8])
     linea_pago.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), pink),
-        ("TOPPADDING", (0, 0), (-1, -1), 0),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ("BACKGROUND", (0, 0), (-1, -1), pink)
     ]))
     bloque_pago.append(linea_pago)
-    #bloque_pago.append(Spacer(1, 4))
+    bloque_pago.append(Spacer(1, 4))
 
-    # Texto descriptivo
-    texto_forma_pago = (
-        "El monto total con <b>IVA incluido</b> será descontado directamente de la siguiente "
-        "facturación por producción de PriceTravel dentro de la vigencia de la publicidad contratada."
-    )
+    # === TEXTO SEGÚN SELECCIÓN ===
+    forma_pago = data.get("formaPago", "").strip()
 
-    # 🔹 Estilo sin espacio entre líneas
+    if forma_pago == "Descuento":
+        texto_forma_pago = (
+            "El monto total con IVA incluido será descontado directamente de la "
+            "siguiente facturación por producción de PriceTravel dentro de la vigencia "
+            "de la publicidad contratada."
+        )
+    elif forma_pago == "Depósito o Transferencia":
+        texto_forma_pago = (
+            "El pago deberá ser liquidado durante la vigencia del paquete. Favor de "
+            "enviar el comprobante de pago a 1 especificando el concepto del pago."
+        )
+    else:  # Intercambio, Patrocinio, Otro
+        texto_forma_pago = (
+            "Especificar en los comentarios la forma de pago del acuerdo."
+        )
+
+    # Estilo sin interlineado
     sin_interlineado = ParagraphStyle(
         "sin_interlineado",
         parent=small,
-        leading=small.fontSize,  # igual al tamaño de letra (sin espacio extra)
+        leading=small.fontSize,
     )
 
-    # Tabla principal: columna izquierda (gris + rosa) y derecha (texto)
+    # Tabla principal (mismo formato que antes)
     t_pago = Table([
         [
-            Paragraph("<b><font color='#ED1556'>Descuento</font></b>", label),
+            Paragraph(f"<b><font color='#ED1556'>{forma_pago}</font></b>", label),
             Paragraph(texto_forma_pago, sin_interlineado)
         ]
     ], colWidths=[85, 185])
+
     t_pago.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (0, 0), gray),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TEXTCOLOR", (1, 0), (1, 0), darkgray),
-        ("FONTSIZE", (1, 0), (1, 0), 8),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING", (0, 0), (-1, -1), 4),
         ("RIGHTPADDING", (0, 0), (-1, -1), 4),
         ("TOPPADDING", (0, 0), (-1, -1), 3),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
     ]))
+
     bloque_pago.append(t_pago)
 
-    # Envolver todo para mantener alineación con las tablas
+    # Envolver bloque igual que antes
     bloque_pago_wrap = Table([[bloque_pago]], colWidths=[270])
     bloque_pago_wrap.hAlign = "LEFT"
     bloque_pago_wrap.setStyle(TableStyle([
         ("LEFTPADDING", (0, 0), (-1, -1), 15),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-    ])) 
+    ]))
+
     elements.append(bloque_pago_wrap)
+
     #elements.append(Spacer(1, 12))
 
 
@@ -453,7 +512,6 @@ def generar_pdf_detalle():
 
 
     # ======== BLOQUE 7: FIRMAS ========
-    #elements.append(Spacer(1, 20))
 
     # Encabezados principales
     titulos_firmas = Table(
@@ -470,26 +528,28 @@ def generar_pdf_detalle():
     ]))
     elements.append(titulos_firmas)
 
-    # === Fecha en español ===
+    # === Fecha actual en español ===
     meses = {
         "January": "enero", "February": "febrero", "March": "marzo",
         "April": "abril", "May": "mayo", "June": "junio",
         "July": "julio", "August": "agosto", "September": "septiembre",
         "October": "octubre", "November": "noviembre", "December": "diciembre"
     }
+
     fecha_actual = datetime.now().strftime("%d %B %Y")
     for en, es in meses.items():
         fecha_actual = fecha_actual.replace(en, es)
 
-    # === Datos de la tabla ===
+    # === Datos del usuario (solo firma de PT) ===
+    usuario_nombre = data.get("usuarioNombre", "")  # ← VIENE DE NUXT
+
     data_firmas = [
-        ["Nombre:", Paragraph("<b>""</b>", small), "Nombre:", ""],
+        ["Nombre:", Paragraph(f"<b>{usuario_nombre}</b>",label), "Nombre:", ""],
         ["Firma:", "", "Firma:", ""],
-        ["Fecha:", Paragraph("<b>""</b>", small), "Fecha:", ""],
+        ["Fecha:", Paragraph(f"<b>{fecha_actual}</b>", label), "Fecha:", ""],
     ]
 
-    # === Tabla con más aire visual ===
-    t_firmas = Table(data_firmas, colWidths=[70, 180, 70, 180], rowHeights=[22, 22, 22])  # 🔹 Más espacio entre renglones
+    t_firmas = Table(data_firmas, colWidths=[70, 180, 70, 180], rowHeights=[22, 22, 22])
     t_firmas.hAlign = "CENTER"
     t_firmas.setStyle(TableStyle([
         ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
@@ -498,23 +558,18 @@ def generar_pdf_detalle():
         ("ALIGN", (0, 0), (-1, -1), "LEFT"),
         ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
 
-        # 🔹 Líneas negras finas, limpias y de la misma longitud
         ("LINEBELOW", (1, 0), (1, 2), 1.2, colors.black),
         ("LINEBELOW", (3, 0), (3, 2), 1.2, colors.black),
 
-        # 🔹 Espaciado preciso: encabezado ligeramente separado de la línea
-        ("TOPPADDING", (0, 0), (-1, -1), 3),     # más aire sobre el texto
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),  # altura entre líneas ajustada
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
 
-        # 🔹 Sin bordes ni grids
         ("BOX", (0, 0), (-1, -1), 0, colors.white),
         ("INNERGRID", (0, 0), (-1, -1), 0, colors.white),
     ]))
+
     elements.append(t_firmas)
     elements.append(Spacer(1, 15))
-
-
-
 
 
     # ======== BLOQUE 8: FOOTER FINAL ========
